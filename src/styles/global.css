@@ -20,6 +20,7 @@ main { padding: max(1.1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-in
 .muted { color: var(--muted); }.intro { margin: .5rem 0 1.4rem; line-height: 1.5; }
 .full { width: 100%; }.compact { min-height: 40px; padding: .55rem .7rem; font-size: .82rem; }
 .primary-action { min-height: 54px; font-size: 1rem; }
+.creation-actions { display: grid; gap: .65rem; }
 .secondary { border-color: var(--border); background: var(--raised); color: #eee; }
 .text-danger { border-color: transparent; background: transparent; color: var(--danger); }
 .danger { background: #b72e38; }
@@ -28,8 +29,11 @@ main { padding: max(1.1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-in
 .empty-state { padding: 1.6rem 1rem; border: 1px dashed #333; border-radius: 14px; text-align: center; background: #050505; }
 .empty-state h2 { margin-bottom: .4rem; }.empty-state p { margin: 0; line-height: 1.45; }
 .workout-list { display: grid; gap: .65rem; }
-.workout-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 72px; padding: .9rem 1rem; border-color: var(--border); background: var(--card); text-align: left; }
-.workout-row strong, .workout-row small { display: block; }.workout-row strong { font-size: 1.05rem; }.workout-row small { margin-top: .25rem; color: var(--muted); font-weight: 500; }.workout-row > span:last-child { color: var(--muted); font-size: 1.8rem; }
+.workout-row { display: grid; grid-template-columns: minmax(0, 1fr) 52px; min-height: 72px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.workout-open { display: flex; align-items: center; justify-content: space-between; min-width: 0; min-height: 72px; padding: .9rem 1rem; border: 0; border-radius: 0; background: transparent; text-align: left; }
+.workout-open strong, .workout-open small { display: block; }.workout-open strong { font-size: 1.05rem; }.workout-open small { margin-top: .25rem; color: var(--muted); font-weight: 500; }.row-arrow { color: var(--muted); font-size: 1.8rem; }
+.workout-delete { align-self: stretch; min-width: 52px; min-height: 44px; padding: .7rem; border: 0; border-left: 1px solid var(--border); border-radius: 0; background: transparent; color: var(--danger); }
+.workout-delete svg { display: block; width: 22px; height: 22px; margin: auto; fill: currentColor; }
 .screen-header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .back-button { padding-left: 0; background: transparent; color: #ddd; }
 .saved { color: #8bd9a1; font-size: .82rem; }.save-error, .global-error { color: #ffb0b0; font-size: .82rem; }.global-error { padding: .7rem 1rem; border-bottom: 1px solid #5a2525; background: #210b0b; }
@@ -46,7 +50,7 @@ fieldset { min-width: 0; margin: 0; padding: 0; border: 0; } legend { margin-bot
 .bottom-actions { display: grid; gap: .4rem; margin-top: 1rem; padding-bottom: env(safe-area-inset-bottom); }
 .dialog-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; align-items: end; padding: 1rem max(1rem, env(safe-area-inset-right)) calc(1rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); background: rgb(0 0 0 / 78%); }
 .dialog { width: min(100%, 520px); max-height: min(90dvh, 700px); margin: auto auto 0; padding: 1.2rem; overflow-y: auto; border: 1px solid #373737; border-radius: 18px; background: #111; }
-.dialog h2 { margin-bottom: .55rem; }.dialog p { line-height: 1.45; }.dialog label:not(.check-row) { margin: 1rem 0 .35rem; }.dialog input:not([type=checkbox]) { width: 100%; }
+.dialog h2 { margin-bottom: .55rem; }.dialog p { line-height: 1.45; white-space: pre-line; }.dialog label:not(.check-row) { margin: 1rem 0 .35rem; }.dialog input:not([type=checkbox]) { width: 100%; }
 .dialog-actions, .inline-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.2rem; }
 .check-row { display: flex; align-items: center; gap: .7rem; min-height: 48px; margin-top: .8rem; }.check-row input { min-height: auto; width: 22px; height: 22px; }
 .field-error { margin: .4rem 0 0; color: #ff9da5; font-size: .83rem; }

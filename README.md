@@ -1,4 +1,4 @@
-# Tréninkový zápisník
+# Stronk App
 
 Mobile-first webová aplikace pro rychlé zapisování společných tréninků Lukáše a Terky. U každé série uchovává samostatnou váhu a počet opakování pro oba. Umožňuje upravit výchozí cviky i starší tréninky a vše ukládá automaticky.
 

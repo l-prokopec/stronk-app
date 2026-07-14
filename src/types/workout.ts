@@ -5,3 +5,4 @@ export type WorkoutExercise = { id: string; exerciseTemplateId: string | null; n
 export type Workout = { id: string; date: string; exercises: WorkoutExercise[]; createdAt: string; updatedAt: string }
 export type AppState = { version: 1; exerciseTemplates: ExerciseTemplate[]; workouts: Workout[]; activeWorkoutId: string | null }
 export type Person = 'lukas' | 'terka'
+export type WorkoutCreationMode = 'withTemplates' | 'empty'
