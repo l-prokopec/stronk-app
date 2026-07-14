@@ -11,7 +11,7 @@ export function WorkoutScreen() {
   if (!workout) return <main><button className="back-button" onClick={() => dispatch({ type: 'CLOSE_WORKOUT' })}>← Zpět</button><EmptyState title="Trénink nebyl nalezen">Mohl být odstraněn v jiné kartě prohlížeče.</EmptyState></main>
   return <main>
     <header className="screen-header"><button className="back-button" onClick={() => dispatch({ type: 'CLOSE_WORKOUT' })}>← Zpět</button><span className={saveFailed ? 'save-error' : 'saved'} role="status">{saveFailed ? 'Data se nepodařilo uložit do prohlížeče.' : 'Uloženo'}</span></header>
-    <div className="date-field"><label htmlFor="workout-date">Datum tréninku</label><input id="workout-date" type="date" value={workout.date} onChange={(event) => dispatch({ type: 'UPDATE_DATE', workoutId: workout.id, date: event.target.value })} /></div>
+    <div className="date-field workout-date-section"><label htmlFor="workout-date">Datum tréninku</label><input className="workout-date-input" id="workout-date" type="date" value={workout.date} onChange={(event) => dispatch({ type: 'UPDATE_DATE', workoutId: workout.id, date: event.target.value })} /></div>
     <section className="exercise-list" aria-label="Cviky">
       {workout.exercises.length === 0 ? <EmptyState title="Trénink nemá žádné cviky">Přidejte vlastní cvik a začněte zapisovat série.</EmptyState> : workout.exercises.map((exercise) => <ExerciseCard key={exercise.id} workoutId={workout.id} exercise={exercise} />)}
     </section>
