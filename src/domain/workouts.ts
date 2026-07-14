@@ -1,8 +1,9 @@
-import type { AppState, ExerciseTemplate, Workout, WorkoutCreationMode, WorkoutSet } from '../types/workout'
+import type { AppState, ExerciseSetsByPerson, ExerciseTemplate, PersonSet, Workout, WorkoutCreationMode } from '../types/workout'
 import { toLocalDate } from '../utils/date'
 import { createId } from '../utils/id'
 
-export const createEmptySet = (): WorkoutSet => ({ id: createId(), lukas: { weight: '', reps: '' }, terka: { weight: '', reps: '' } })
+export const createPersonSet = (previous?: Pick<PersonSet, 'reps' | 'weight'>): PersonSet => ({ id: createId(), reps: previous?.reps ?? '', weight: previous?.weight ?? '' })
+export const createInitialSetsByPerson = (): ExerciseSetsByPerson => ({ lukas: [createPersonSet()], terka: [createPersonSet()] })
 
 export const createWorkout = (state: AppState, mode: WorkoutCreationMode = 'withTemplates', currentDate = new Date(), workoutId = createId()): Workout => {
   const timestamp = currentDate.toISOString()
@@ -11,7 +12,7 @@ export const createWorkout = (state: AppState, mode: WorkoutCreationMode = 'with
     : []
   return {
     id: workoutId, date: toLocalDate(currentDate), createdAt: timestamp, updatedAt: timestamp,
-    exercises: templates.map((template, order) => ({ id: createId(), exerciseTemplateId: template.id, name: template.name, order, sets: [createEmptySet()] })),
+    exercises: templates.map((template, order) => ({ id: createId(), exerciseTemplateId: template.id, name: template.name, order, setsByPerson: createInitialSetsByPerson() })),
   }
 }
 
