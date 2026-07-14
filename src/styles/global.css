@@ -50,7 +50,36 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .workout-screen__content > * { min-width: 0; max-width: 100%; }
 .workout-date-section, .workout-exercises { width: 100%; max-width: 100%; min-width: 0; margin-inline: 0; padding-inline: 0; }
 .date-field { margin-bottom: 1.2rem; }.date-field label { margin-bottom: .45rem; }
-.workout-date-input { display: block; width: 100%; max-width: 100%; min-width: 0; margin-inline: 0; box-sizing: border-box; }
+.workout-date-input[type="date"] {
+  display: block;
+  inline-size: 100%;
+  width: 100%;
+  min-inline-size: 0;
+  min-width: 0;
+  max-inline-size: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+
+  /* Oprava intrinsic min-width nativního date inputu v iOS Safari */
+  -webkit-min-logical-width: 0;
+
+  /* Odstraní WebKit rozměry nativního kontrolního boxu */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.workout-date-input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+}
+.workout-date-section {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
 .exercise-list { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: .9rem; }
 .exercise-card { max-width: 100%; min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: 16px; background: var(--card); }
 .card-heading, .set-heading { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }.card-heading { margin-bottom: 1rem; }
