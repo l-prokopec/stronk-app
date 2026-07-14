@@ -12,7 +12,7 @@ export function WorkoutScreen() {
   return <main className="workout-screen">
     <header className="screen-header workout-screen__header"><button className="back-button" onClick={() => dispatch({ type: 'CLOSE_WORKOUT' })}>← Zpět</button><span className={saveFailed ? 'save-error' : 'saved'} role="status">{saveFailed ? 'Data se nepodařilo uložit do prohlížeče.' : 'Uloženo'}</span></header>
     <div className="workout-screen__content">
-      <section className="date-field workout-date"><label htmlFor="workout-date">Datum tréninku</label><div className="workout-date__field"><input className="workout-date__input" id="workout-date" type="date" value={workout.date} onChange={(event) => dispatch({ type: 'UPDATE_DATE', workoutId: workout.id, date: event.target.value })} /></div></section>
+      <section className="date-field workout-date-section"><label htmlFor="workout-date">Datum tréninku</label><input className="workout-date-input" id="workout-date" type="date" value={workout.date} onChange={(event) => dispatch({ type: 'UPDATE_DATE', workoutId: workout.id, date: event.target.value })} /></section>
       <section className="exercise-list workout-exercises" aria-label="Cviky">
         {workout.exercises.length === 0 ? <EmptyState title="Trénink nemá žádné cviky">Přidejte vlastní cvik a začněte zapisovat série.</EmptyState> : workout.exercises.map((exercise) => <ExerciseCard key={exercise.id} workoutId={workout.id} exercise={exercise} />)}
       </section>

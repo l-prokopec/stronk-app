@@ -22,17 +22,26 @@ describe('ochrana mobilního layoutu proti horizontálnímu overflow', () => {
     expect(contentRule).toContain('max-width: 100%')
     expect(contentRule).toContain('min-width: 0')
     expect(contentRule).toContain('flex-direction: column')
+    expect(contentRule).toContain('padding-inline: 0')
   })
 
-  it('date input používá logickou šířku rodiče a iOS omezení bez 100vw', () => {
-    const dateRule = css.match(/\.workout-date__input\s*{([^}]*)}/)?.[1] ?? ''
+  it('date sekce a seznam cviků používají shodnou geometrii bez vlastního paddingu', () => {
+    const blocksRule = css.match(/\.workout-date-section, \.workout-exercises\s*{([^}]*)}/)?.[1] ?? ''
+    expect(blocksRule).toContain('width: 100%')
+    expect(blocksRule).toContain('max-width: 100%')
+    expect(blocksRule).toContain('min-width: 0')
+    expect(blocksRule).toContain('margin-inline: 0')
+    expect(blocksRule).toContain('padding-inline: 0')
+  })
+
+  it('date input používá šířku společného rodiče bez workaroundů', () => {
+    const dateRule = css.match(/\.workout-date-input\s*{([^}]*)}/)?.[1] ?? ''
     expect(dateRule).toContain('width: 100%')
-    expect(dateRule).toContain('inline-size: 100%')
     expect(dateRule).toContain('max-width: 100%')
-    expect(dateRule).toContain('max-inline-size: 100%')
     expect(dateRule).toContain('min-width: 0')
-    expect(dateRule).toContain('min-inline-size: 0')
-    expect(css).toMatch(/\.workout-date__input\[type="date"\]\s*{[^}]*-webkit-min-logical-width:\s*0;/)
+    expect(dateRule).toContain('margin-inline: 0')
+    expect(dateRule).toContain('box-sizing: border-box')
+    expect(css).not.toContain('-webkit-min-logical-width')
     expect(dateRule).not.toContain('100vw')
     expect(css).not.toMatch(/(?:width|min-width):\s*100vw/)
   })
