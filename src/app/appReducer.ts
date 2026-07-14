@@ -4,7 +4,7 @@ import { cleanExerciseName, normalizeExerciseName } from '../utils/exerciseName'
 import { createId } from '../utils/id'
 
 export type AppAction =
-  | { type: 'CREATE_WORKOUT'; mode?: WorkoutCreationMode; now?: Date }
+  | { type: 'CREATE_WORKOUT'; mode?: WorkoutCreationMode; now?: Date; id?: string }
   | { type: 'OPEN_WORKOUT'; id: string }
   | { type: 'CLOSE_WORKOUT' }
   | { type: 'DELETE_WORKOUT'; id: string }
@@ -29,7 +29,7 @@ const normalizeOrders = (state: AppState): AppState => ({ ...state, exerciseTemp
 
 export const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
-    case 'CREATE_WORKOUT': { const workout = createWorkout(state, action.mode, action.now); return { ...state, workouts: [...state.workouts, workout], activeWorkoutId: workout.id } }
+    case 'CREATE_WORKOUT': { const workout = createWorkout(state, action.mode, action.now, action.id); return { ...state, workouts: [...state.workouts, workout], activeWorkoutId: workout.id } }
     case 'OPEN_WORKOUT': return state.workouts.some((item) => item.id === action.id) ? { ...state, activeWorkoutId: action.id } : { ...state, activeWorkoutId: null }
     case 'CLOSE_WORKOUT': return { ...state, activeWorkoutId: null }
     case 'DELETE_WORKOUT': return { ...state, workouts: state.workouts.filter((item) => item.id !== action.id), activeWorkoutId: state.activeWorkoutId === action.id ? null : state.activeWorkoutId }
