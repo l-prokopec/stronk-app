@@ -2,7 +2,7 @@
 
 Mobile-first webová aplikace pro rychlé zapisování společných tréninků Lukáše a Terky. U každé série uchovává samostatnou váhu a počet opakování pro oba. Umožňuje upravit výchozí cviky i starší tréninky a vše ukládá automaticky.
 
-Cviky lze v tréninku i v seznamu výchozích cviků řadit přetažením úchytky prstem, myší nebo klávesnicí. V tréninku se zobrazují ve výchozím stavu sbalené a rozbalují se klepnutím na název. Rozhraní používá moderní pastelový tmavý motiv.
+Cviky lze v tréninku i v seznamu výchozích cviků řadit přetažením úchytky prstem, myší nebo klávesnicí. V tréninku se zobrazují ve výchozím stavu sbalené a rozbalují se klepnutím na název. Výchozí cviky se spravují přímo z karty pomocí checkboxu a ikony koše. Rozhraní používá moderní pastelový tmavý motiv.
 
 ## Stack a požadavky
 
