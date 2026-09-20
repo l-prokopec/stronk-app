@@ -6,13 +6,21 @@ const ruleBody = (selector: string) => {
   return stylesheet.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 }
 
-describe('subtilní kontrastní design', () => {
-  it('centralizuje neutrální povrchy a samostatné akcenty osob', () => {
-    expect(stylesheet).toMatch(/--background:\s*#000000/)
+describe('pastelový světlý a tmavý motiv', () => {
+  it('centralizuje pastelové povrchy a samostatné akcenty osob', () => {
+    expect(stylesheet).toMatch(/--background:\s*#f7f5ff/)
     expect(stylesheet).toMatch(/--surface-card:\s*#[0-9a-f]{6}/i)
     expect(stylesheet).toMatch(/--surface-input:\s*#[0-9a-f]{6}/i)
     expect(stylesheet).toMatch(/--lukas-accent:\s*#[0-9a-f]{6}/i)
     expect(stylesheet).toMatch(/--terka-accent:\s*#[0-9a-f]{6}/i)
+  })
+
+  it('obsahuje kompletní tmavou paletu', () => {
+    const darkTheme = ruleBody(':root[data-theme="dark"]')
+    expect(darkTheme).toMatch(/color-scheme:\s*dark/)
+    expect(darkTheme).toMatch(/--background:\s*#[0-9a-f]{6}/i)
+    expect(darkTheme).toMatch(/--surface-card:\s*#[0-9a-f]{6}/i)
+    expect(darkTheme).toMatch(/--text-primary:\s*#[0-9a-f]{6}/i)
   })
 
   it('nepoužívá velké barevné pozadí sekcí osob', () => {

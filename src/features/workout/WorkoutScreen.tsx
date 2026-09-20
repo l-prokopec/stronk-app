@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../../app/AppContext'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EmptyState } from '../../components/EmptyState'
+import { SortableItem, SortableList } from '../../components/SortableList'
 import { AddExerciseDialog } from './AddExerciseDialog'
 import { ExerciseCard } from './ExerciseCard'
 
@@ -14,7 +15,14 @@ export function WorkoutScreen({ onBack, onDeleteWorkout }: { onBack: () => void;
     <div className="workout-screen__content">
       <section className="date-field workout-date-section"><label htmlFor="workout-date">Datum tréninku</label><input className="workout-date-input" id="workout-date" type="date" value={workout.date} onChange={(event) => dispatch({ type: 'UPDATE_DATE', workoutId: workout.id, date: event.target.value })} /></section>
       <section className="exercise-list workout-exercises" aria-label="Cviky">
-        {workout.exercises.length === 0 ? <EmptyState title="Trénink nemá žádné cviky">Přidejte vlastní cvik a začněte zapisovat série.</EmptyState> : workout.exercises.map((exercise) => <ExerciseCard key={exercise.id} workoutId={workout.id} exercise={exercise} />)}
+        {workout.exercises.length === 0
+          ? <EmptyState title="Trénink nemá žádné cviky">Přidejte vlastní cvik a začněte zapisovat série.</EmptyState>
+          : <SortableList
+              ids={workout.exercises.map((exercise) => exercise.id)}
+              onReorder={(activeId, overId) => dispatch({ type: 'REORDER_EXERCISES', workoutId: workout.id, activeId, overId })}
+            >
+              {workout.exercises.map((exercise) => <SortableItem key={exercise.id} id={exercise.id}>{(handle) => <ExerciseCard workoutId={workout.id} exercise={exercise} dragHandle={handle} />}</SortableItem>)}
+            </SortableList>}
       </section>
       <div className="bottom-actions"><button className="primary-action full workout-screen__primary-action" onClick={() => setShowAdd(true)}>+ Přidat cvik</button><button className="text-danger full" onClick={() => setConfirmDelete(true)}>Odstranit celý trénink</button></div>
     </div>

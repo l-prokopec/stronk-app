@@ -2,6 +2,8 @@
 
 Mobile-first webová aplikace pro rychlé zapisování společných tréninků Lukáše a Terky. U každé série uchovává samostatnou váhu a počet opakování pro oba. Umožňuje upravit výchozí cviky i starší tréninky a vše ukládá automaticky.
 
+Cviky lze v tréninku i v seznamu výchozích cviků řadit přetažením úchytky prstem, myší nebo klávesnicí. V tréninku se zobrazují ve výchozím stavu sbalené a rozbalují se klepnutím na název. Rozhraní nabízí pastelový světlý i tmavý motiv a volbu motivu si pamatuje v prohlížeči.
+
 ## Stack a požadavky
 
 Vite, React, TypeScript v strict režimu, čisté CSS, `localStorage`, Vitest, React Testing Library a ESLint. Aplikace nemá backend ani uživatelské účty a neposílá data na server.

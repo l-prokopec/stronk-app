@@ -11,6 +11,7 @@ export type AppAction =
   | { type: 'UPDATE_DATE'; workoutId: string; date: string }
   | { type: 'ADD_EXERCISE'; workoutId: string; name: string; addToTemplates: boolean }
   | { type: 'REMOVE_EXERCISE'; workoutId: string; exerciseId: string }
+  | { type: 'REORDER_EXERCISES'; workoutId: string; activeId: string; overId: string }
   | { type: 'ADD_PERSON_SET'; workoutId: string; exerciseId: string; person: Person }
   | { type: 'DELETE_PERSON_SET'; workoutId: string; exerciseId: string; person: Person; setId: string }
   | { type: 'UPDATE_PERSON_SET'; workoutId: string; exerciseId: string; person: Person; setId: string; field: 'weight' | 'reps'; value: string }
@@ -18,7 +19,7 @@ export type AppAction =
   | { type: 'RENAME_TEMPLATE'; id: string; name: string }
   | { type: 'TOGGLE_TEMPLATE'; id: string }
   | { type: 'DELETE_TEMPLATE'; id: string }
-  | { type: 'MOVE_TEMPLATE'; id: string; direction: -1 | 1 }
+  | { type: 'REORDER_TEMPLATES'; activeId: string; overId: string }
 
 const now = () => new Date().toISOString()
 const updateWorkout = (state: AppState, id: string, transform: (workout: AppState['workouts'][number]) => AppState['workouts'][number]): AppState => ({
@@ -26,6 +27,16 @@ const updateWorkout = (state: AppState, id: string, transform: (workout: AppStat
 })
 
 const normalizeOrders = (state: AppState): AppState => ({ ...state, exerciseTemplates: state.exerciseTemplates.map((template, order) => ({ ...template, order })) })
+
+const moveById = <T extends { id: string }>(items: T[], activeId: string, overId: string): T[] => {
+  const from = items.findIndex((item) => item.id === activeId)
+  const to = items.findIndex((item) => item.id === overId)
+  if (from < 0 || to < 0 || from === to) return items
+  const next = [...items]
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
+}
 
 export const appReducer = (state: AppState, action: AppAction): AppState => {
   switch (action.type) {
@@ -46,6 +57,12 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       return next
     }
     case 'REMOVE_EXERCISE': return updateWorkout(state, action.workoutId, (workout) => ({ ...workout, exercises: workout.exercises.filter((item) => item.id !== action.exerciseId).map((item, order) => ({ ...item, order })) }))
+    case 'REORDER_EXERCISES': return updateWorkout(state, action.workoutId, (workout) => {
+      const ordered = [...workout.exercises].sort((a, b) => a.order - b.order)
+      const reordered = moveById(ordered, action.activeId, action.overId)
+      if (reordered === ordered) return workout
+      return { ...workout, exercises: reordered.map((exercise, order) => ({ ...exercise, order })) }
+    })
     case 'ADD_PERSON_SET': return updateWorkout(state, action.workoutId, (workout) => ({ ...workout, exercises: workout.exercises.map((exercise) => {
       if (exercise.id !== action.exerciseId) return exercise
       const personSets = exercise.setsByPerson[action.person]
@@ -57,13 +74,11 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'RENAME_TEMPLATE': return { ...state, exerciseTemplates: state.exerciseTemplates.map((item) => item.id === action.id ? { ...item, name: cleanExerciseName(action.name), updatedAt: now() } : item) }
     case 'TOGGLE_TEMPLATE': return { ...state, exerciseTemplates: state.exerciseTemplates.map((item) => item.id === action.id ? { ...item, enabledByDefault: !item.enabledByDefault, updatedAt: now() } : item) }
     case 'DELETE_TEMPLATE': return normalizeOrders({ ...state, exerciseTemplates: state.exerciseTemplates.filter((item) => item.id !== action.id) })
-    case 'MOVE_TEMPLATE': {
+    case 'REORDER_TEMPLATES': {
       const sorted = [...state.exerciseTemplates].sort((a, b) => a.order - b.order)
-      const index = sorted.findIndex((item) => item.id === action.id)
-      const target = index + action.direction
-      if (index < 0 || target < 0 || target >= sorted.length) return state
-      ;[sorted[index], sorted[target]] = [sorted[target], sorted[index]]
-      return { ...state, exerciseTemplates: sorted.map((item, order) => ({ ...item, order, updatedAt: item.id === action.id ? now() : item.updatedAt })) }
+      const reordered = moveById(sorted, action.activeId, action.overId)
+      if (reordered === sorted) return state
+      return { ...state, exerciseTemplates: reordered.map((item, order) => ({ ...item, order, updatedAt: item.id === action.activeId ? now() : item.updatedAt })) }
     }
   }
 }
