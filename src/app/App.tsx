@@ -2,14 +2,12 @@ import { ExerciseTemplatesScreen } from '../features/templates/ExerciseTemplates
 import { HomeScreen } from '../features/home/HomeScreen'
 import { WorkoutScreen } from '../features/workout/WorkoutScreen'
 import { useAppHistory } from '../navigation/useAppHistory'
-import { ThemeToggle } from '../components/ThemeToggle'
 import { useApp } from './AppContext'
 
 export function App() {
   const { state, saveFailed } = useApp()
   const navigation = useAppHistory()
   return <div className="app-shell">
-    <div className="app-toolbar"><ThemeToggle /></div>
     {saveFailed && !state.activeWorkoutId && <div className="global-error" role="status">Data se nepodařilo uložit do prohlížeče.</div>}
     {state.activeWorkoutId
       ? <WorkoutScreen onBack={navigation.backToHome} onDeleteWorkout={navigation.deleteOpenWorkout} />
