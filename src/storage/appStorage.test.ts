@@ -23,7 +23,12 @@ const legacyState = (): LegacyAppState => ({
 
 describe('appStorage', () => {
   it('vytvoří stav verze 2 při prázdném localStorage', () => { expect(loadState().version).toBe(2); expect(loadState().workouts).toEqual([]) })
-  it('počáteční stav obsahuje devět aktivních výchozích cviků', () => { const state = createInitialState(); expect(state.exerciseTemplates).toHaveLength(9); expect(state.exerciseTemplates.every((item) => item.enabledByDefault)).toBe(true) })
+  it('počáteční stav obsahuje dvanáct aktivních výchozích cviků ve správném pořadí', () => {
+    const state = createInitialState()
+    expect(state.exerciseTemplates.map(({ name }) => name)).toEqual(['Kliky', 'Dead bug', 'Boční plank', 'Plank', 'Bulhaři', 'Rumuni', 'Předkopávání', 'Zakopávání', 'Leg press', 'Výpony na lýtka', 'Asistované shyby', 'Asistované dipy'])
+    expect(state.exerciseTemplates.map(({ order }) => order)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+    expect(state.exerciseTemplates.every((item) => item.enabledByDefault)).toBe(true)
+  })
   it('načte uložený validní stav verze 2 beze změny', () => { const state = createInitialState(); state.activeWorkoutId = 'abc'; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); expect(loadState()).toEqual(state) })
 
   it('migruje každou starou společnou sérii na jednu sérii pro každou osobu', () => {

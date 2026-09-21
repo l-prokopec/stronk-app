@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 6047)
+Total output lines: 264
+
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -54,71 +57,7 @@ describe('komponenty sérií podle osoby', () => {
     expect([...card.querySelectorAll('h4')].map((heading) => heading.textContent)).toEqual(['Lukáš', 'Terka'])
   })
 
-  it('označuje sekce i přidávací akce variantou osoby bez viditelného opakování jména', async () => {
-    const { card } = await openLegPress()
-    expect(within(card).getByRole('region', { name: 'Lukáš' })).toHaveClass('person-sets', 'person-sets--lukas')
-    expect(within(card).getByRole('region', { name: 'Terka' })).toHaveClass('person-sets', 'person-sets--terka')
-    const lukasButton = within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' })
-    const terkaButton = within(card).getByRole('button', { name: 'Přidat sérii pro Terku' })
-    expect(lukasButton).toHaveClass('add-person-set--lukas')
-    expect(terkaButton).toHaveClass('add-person-set--terka')
-    expect(lukasButton).toHaveTextContent(/^\+ Přidat sérii$/)
-    expect(terkaButton).toHaveTextContent(/^\+ Přidat sérii$/)
-  })
-
-  it('všechny Lukášovy série jsou před první Terčinou sérií', async () => {
-    const { user, card } = await openLegPress()
-    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
-    const lastLukas = within(card).getByLabelText('Opakování, 2. série, Lukáš, Leg press')
-    const firstTerka = within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')
-    expect(lastLukas.compareDocumentPosition(firstTerka) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-
-  it('v každém řádku je Opakování před Váhou', async () => {
-    const { card } = await openLegPress()
-    const row = within(card).getByRole('group', { name: '1. série, Lukáš, Leg press' })
-    const inputs = within(row).getAllByRole('textbox')
-    expect(inputs.map((input) => input.getAttribute('aria-label'))).toEqual([
-      'Opakování, 1. série, Lukáš, Leg press',
-      'Váha v kilogramech, 1. série, Lukáš, Leg press',
-    ])
-  })
-
-  it('každá série má vlastní koš s osobou, číslem série a cvikem v názvu', async () => {
-    const { user, card } = await openLegPress()
-    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
-    expect(within(card).getByRole('button', { name: 'Odstranit 1. sérii Lukáše u cviku Leg press' })).toBeInTheDocument()
-    expect(within(card).getByRole('button', { name: 'Odstranit 1. sérii Terky u cviku Leg press' })).toBeInTheDocument()
-    expect(within(card).getByRole('button', { name: 'Odstranit 2. sérii Terky u cviku Leg press' })).toBeInTheDocument()
-  })
-
-  it('Lukášův koš nemaže Terčinu sérii', async () => {
-    const { user, card } = await openLegPress()
-    await user.click(within(card).getByRole('button', { name: 'Odstranit 1. sérii Lukáše u cviku Leg press' }))
-    expect(within(card).queryByLabelText('Opakování, 1. série, Lukáš, Leg press')).not.toBeInTheDocument()
-    expect(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')).toBeInTheDocument()
-  })
-
-  it('Terčin koš nemaže Lukášovu sérii', async () => {
-    const { user, card } = await openLegPress()
-    await user.click(within(card).getByRole('button', { name: 'Odstranit 1. sérii Terky u cviku Leg press' }))
-    expect(within(card).queryByLabelText('Opakování, 1. série, Terka, Leg press')).not.toBeInTheDocument()
-    expect(within(card).getByLabelText('Opakování, 1. série, Lukáš, Leg press')).toBeInTheDocument()
-  })
-
-  it('přidání série funguje samostatně pro obě osoby', async () => {
-    const { user, card } = await openLegPress()
-    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
-    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
-    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
-    expect(within(card).getAllByRole('group', { name: /Lukáš, Leg press/ })).toHaveLength(3)
-    expect(within(card).getAllByRole('group', { name: /Terka, Leg press/ })).toHaveLength(2)
-  })
-
-  it('nový řádek zdědí poslední hodnoty stejné osoby a cviku', async () => {
-    const { user, card } = await openLegPress()
-    await user.type(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press'), '11')
-    await user.type(within(card).getByLabelText('Váha v kilogramech, 1. série, Terka, Leg press'), '32.5')
+  it('označuje sekce i přidávací akce variantou osoby…1047 tokens truncated…Terka, Leg press'), '32.5')
     await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
     expect(within(card).getByLabelText('Opakování, 2. série, Terka, Leg press')).toHaveValue('11')
     expect(within(card).getByLabelText('Váha v kilogramech, 2. série, Terka, Leg press')).toHaveValue('32.5')
@@ -159,7 +98,7 @@ describe('komponenty sérií podle osoby', () => {
     const { user, card } = await openLegPress()
     await user.type(within(card).getByLabelText('Opakování, 1. série, Lukáš, Leg press'), '7')
     await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
-    await waitFor(() => expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].exercises[0].setsByPerson.lukas).toHaveLength(2))
+    await waitFor(() => expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].exercises.find((exercise) => exercise.name === 'Leg press')?.setsByPerson.lukas).toHaveLength(2))
     const workoutId = (JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].id
     cleanup()
     setHistoryState(workoutHistoryState(workoutId))
@@ -185,7 +124,7 @@ describe('browser history navigace', () => {
   it('otevření uloženého tréninku vytvoří jedinou workout entry se správným ID', async () => {
     const user = userEvent.setup(); const state = stateWithClosedWorkout(); setHistoryState(HOME_HISTORY_STATE)
     const push = vi.spyOn(window.history, 'pushState'); renderApp(state)
-    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*9 cviků/ }))
+    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*12 cviků/ }))
     expect(push).toHaveBeenCalledTimes(1)
     expect(push.mock.calls[0][0]).toEqual(workoutHistoryState(state.workouts[0].id))
     expect(screen.getByLabelText('Datum tréninku')).toBeInTheDocument()
@@ -204,13 +143,13 @@ describe('browser history navigace', () => {
   it('tlačítko zpět používá history.back bez vytvoření další entry', async () => {
     const user = userEvent.setup(); const state = stateWithClosedWorkout(); setHistoryState(HOME_HISTORY_STATE)
     const push = vi.spyOn(window.history, 'pushState'); const back = vi.spyOn(window.history, 'back').mockImplementation(() => {}); renderApp(state)
-    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*9 cviků/ })); await user.click(screen.getByRole('button', { name: '← Zpět' }))
+    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*12 cviků/ })); await user.click(screen.getByRole('button', { name: '← Zpět' }))
     expect(back).toHaveBeenCalledTimes(1); expect(push).toHaveBeenCalledTimes(1)
   })
 
   it('popstate home zavře detail a zobrazí dashboard', async () => {
     const user = userEvent.setup(); const state = stateWithClosedWorkout(); setHistoryState(HOME_HISTORY_STATE); renderApp(state)
-    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*9 cviků/ })); dispatchPopState(HOME_HISTORY_STATE)
+    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*12 cviků/ })); dispatchPopState(HOME_HISTORY_STATE)
     expect(await screen.findByRole('heading', { name: 'Stronk App' })).toBeInTheDocument()
   })
 
@@ -252,7 +191,7 @@ describe('browser history navigace', () => {
   it('odstranění otevřeného tréninku nahradí entry domovskou a zobrazí dashboard', async () => {
     const user = userEvent.setup(); const state = stateWithClosedWorkout(); setHistoryState(HOME_HISTORY_STATE)
     const replace = vi.spyOn(window.history, 'replaceState'); renderApp(state)
-    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*9 cviků/ })); await user.click(screen.getByRole('button', { name: 'Odstranit celý trénink' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' }))
+    await user.click(screen.getByRole('button', { name: /14\. 7\. 2026.*12 cviků/ })); await user.click(screen.getByRole('button', { name: 'Odstranit celý trénink' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' }))
     expect(await screen.findByText('Zatím žádný trénink')).toBeInTheDocument(); expect(window.history.state).toEqual(HOME_HISTORY_STATE)
     expect(replace.mock.calls.some(([historyState]) => (historyState as AppHistoryState).screen === 'home')).toBe(true)
   })

@@ -4,7 +4,7 @@ import { createId } from '../utils/id'
 export const STORAGE_KEY = 'gym-workout-tracker:v1'
 export const CORRUPT_STORAGE_PREFIX = `${STORAGE_KEY}:corrupt:`
 export const MIGRATION_BACKUP_PREFIX = `${STORAGE_KEY}:backup:v1:`
-const DEFAULT_NAMES = ['Leg press', 'Předkopávání', 'Zakopávání', 'Stahování horní kladky', 'Přítahy spodní kladky', 'Tlaky na prsa', 'Tlaky na ramena', 'Bicepsový zdvih', 'Triceps na kladce']
+const DEFAULT_NAMES = ['Kliky', 'Dead bug', 'Boční plank', 'Plank', 'Bulhaři', 'Rumuni', 'Předkopávání', 'Zakopávání', 'Leg press', 'Výpony na lýtka', 'Asistované shyby', 'Asistované dipy']
 
 type LegacyPersonData = { weight: string; reps: string }
 type LegacySet = { id: string; lukas: LegacyPersonData; terka: LegacyPersonData }
