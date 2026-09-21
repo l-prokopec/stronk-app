@@ -16,11 +16,6 @@ describe('pastelový tmavý motiv', () => {
     expect(stylesheet).toMatch(/--terka-accent:\s*#[0-9a-f]{6}/i)
   })
 
-  it('zobrazuje horní gradient pouze po odscrollování', () => {
-    expect(stylesheet).toMatch(/body\s*\{\s*min-height:\s*100vh;\s*min-height:\s*100dvh;\s*background:\s*var\(--background\)/)
-    expect(ruleBody('html.has-scrolled body')).toMatch(/radial-gradient/)
-  })
-
   it('nepoužívá velké barevné pozadí sekcí osob', () => {
     expect(ruleBody('.person-sets--lukas .person-sets__heading')).not.toMatch(/background/i)
     expect(ruleBody('.person-sets--terka .person-sets__heading')).not.toMatch(/background/i)

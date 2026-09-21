@@ -40,8 +40,7 @@ html, body, #root { width: 100%; max-width: 100%; min-width: 0; margin: 0; }
 html { background: var(--background); }
 html, body { overflow-x: clip; }
 @supports not (overflow: clip) { html, body { overflow-x: hidden; } }
-body { min-height: 100vh; min-height: 100dvh; background: var(--background); transition: color .2s ease, background .25s ease; }
-html.has-scrolled body { background: radial-gradient(circle at 15% 0%, var(--background-accent), transparent 42%), var(--background); }
+body { min-height: 100vh; min-height: 100dvh; background: radial-gradient(circle at 15% 0%, var(--background-accent), transparent 42%), var(--background); transition: color .2s ease, background-color .2s ease; }
 img, svg, canvas, video, button, input, select, textarea { max-width: 100%; }
 button, input { font: inherit; }
 button { min-height: 44px; padding: .7rem 1rem; border: 1px solid transparent; border-radius: 14px; color: #fff; background: var(--accent-strong); font-weight: 750; cursor: pointer; touch-action: manipulation; transition: transform .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease; }
