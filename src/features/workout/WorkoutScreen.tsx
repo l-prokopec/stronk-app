@@ -27,7 +27,7 @@ export function WorkoutScreen({ onBack, onDeleteWorkout }: { onBack: () => void;
               ids={workout.exercises.map((exercise) => exercise.id)}
               onReorder={(activeId, overId) => dispatch({ type: 'REORDER_EXERCISES', workoutId: workout.id, activeId, overId })}
             >
-              {workout.exercises.map((exercise) => <SortableItem key={exercise.id} id={exercise.id}>{(handle) => <ExerciseCard workoutId={workout.id} exercise={exercise} dragHandle={handle} expanded={!exercise.isCompleted && expandedExerciseId === exercise.id} onToggle={() => !exercise.isCompleted && setExpandedExerciseId((current) => current === exercise.id ? null : exercise.id)} onComplete={() => completeExercise(exercise.id)} />}</SortableItem>)}
+              {workout.exercises.map((exercise) => <SortableItem key={exercise.id} id={exercise.id}>{(handle) => <ExerciseCard workoutId={workout.id} exercise={exercise} dragHandle={handle} expanded={expandedExerciseId === exercise.id} onToggle={() => setExpandedExerciseId((current) => current === exercise.id ? null : exercise.id)} onComplete={() => completeExercise(exercise.id)} />}</SortableItem>)}
             </SortableList>}
       </section>
       <div className="bottom-actions"><button className="primary-action full workout-screen__primary-action" onClick={() => setShowAdd(true)}>+ Přidat cvik</button><button className="text-danger full" onClick={() => setConfirmDelete(true)}>Odstranit celý trénink</button></div>

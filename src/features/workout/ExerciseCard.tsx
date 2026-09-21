@@ -8,7 +8,7 @@ import { PersonSetsEditor } from './PersonSetsEditor'
 export function ExerciseCard({ workoutId, exercise, dragHandle, expanded, onToggle, onComplete }: { workoutId: string; exercise: WorkoutExercise; dragHandle: DragHandleProps; expanded: boolean; onToggle: () => void; onComplete: () => void }) {
   const { dispatch } = useApp(); const [confirmRemove, setConfirmRemove] = useState(false)
   const hasValues = (['lukas', 'terka'] as const).some((person) => exercise.setsByPerson[person].some((set) => set.weight || set.reps))
-  const remove = () => hasValues ? setConfirmRemove(true) : dispatch({ type: 'REMOVE_EXERCISE', workoutId, exerciseId: exercise.id })
+  const remove = () => setConfirmRemove(true)
   const status = exercise.isCompleted ? 'completed' : hasValues ? 'in-progress' : null
   return <article className="exercise-card">
     <div className="card-heading">
@@ -19,8 +19,8 @@ export function ExerciseCard({ workoutId, exercise, dragHandle, expanded, onTogg
     {expanded && <div className="exercise-card__content">
       <PersonSetsEditor workoutId={workoutId} exercise={exercise} person="lukas" displayName="Lukáš" genitiveName="Lukáše" addName="Lukáše" />
       <PersonSetsEditor workoutId={workoutId} exercise={exercise} person="terka" displayName="Terka" genitiveName="Terky" addName="Terku" />
-      <button className="exercise-complete" type="button" onClick={onComplete}>Hotovo</button>
+      {!exercise.isCompleted && <button className="exercise-complete" type="button" onClick={onComplete}>Hotovo</button>}
     </div>}
-    {confirmRemove && <ConfirmDialog title={`Odstranit cvik ${exercise.name}?`} message="Zadané hodnoty v tomto cviku budou odstraněny. Výchozí šablona ani starší tréninky se nezmění." onCancel={() => setConfirmRemove(false)} onConfirm={() => { dispatch({ type: 'REMOVE_EXERCISE', workoutId, exerciseId: exercise.id }); setConfirmRemove(false) }} />}
+    {confirmRemove && <ConfirmDialog title={`Odstranit cvik ${exercise.name}?`} message="Cvik včetně všech jeho sérií bude odstraněn. Výchozí šablona ani starší tréninky se nezmění." onCancel={() => setConfirmRemove(false)} onConfirm={() => { dispatch({ type: 'REMOVE_EXERCISE', workoutId, exerciseId: exercise.id }); setConfirmRemove(false) }} />}
   </article>
 }
