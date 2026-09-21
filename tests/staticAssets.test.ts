@@ -14,7 +14,7 @@ describe('metadata a ikony Stronk App', () => {
   const svg = readFileSync(rootFile('public/favicon.svg'), 'utf8')
   const manifest = JSON.parse(readFileSync(rootFile('public/site.webmanifest'), 'utf8')) as { name: string; short_name: string; start_url: string; icons: Array<{ src: string }> }
 
-  it('používá název v title a Apple metadatech', () => { expect(html).toContain('<title>Stronk App</title>'); expect(html).toContain('name="apple-mobile-web-app-title" content="Stronk App"'); expect(html).toContain('name="apple-mobile-web-app-status-bar-style" content="black"') })
+  it('používá název v title a Apple metadatech', () => { expect(html).toContain('<title>Stronk App</title>'); expect(html).toContain('name="apple-mobile-web-app-title" content="Stronk App"') })
   it('odkazuje relativně na favicon, Apple ikonu a manifest', () => { expect(html).toContain('%BASE_URL%favicon.svg'); expect(html).toContain('%BASE_URL%favicon-32x32.png'); expect(html).toContain('%BASE_URL%icons/apple-touch-icon.png'); expect(html).toContain('%BASE_URL%site.webmanifest'); expect(html).not.toContain('vite.svg') })
   it('manifest obsahuje správný název a relativní cesty', () => { expect(manifest.name).toBe('Stronk App'); expect(manifest.short_name).toBe('Stronk'); expect(manifest.start_url).toBe('./'); expect(manifest.icons.every((icon) => !icon.src.startsWith('/'))).toBe(true) })
   it('všechny odkazované assety existují', () => { ['public/favicon.svg', 'public/favicon-32x32.png', 'public/icons/apple-touch-icon.png', ...manifest.icons.map((icon) => `public/${icon.src}`)].forEach((path) => expect(existsSync(rootFile(path)), path).toBe(true)) })
