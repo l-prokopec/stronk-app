@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 6047)
-Total output lines: 264
-
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -57,7 +54,71 @@ describe('komponenty sérií podle osoby', () => {
     expect([...card.querySelectorAll('h4')].map((heading) => heading.textContent)).toEqual(['Lukáš', 'Terka'])
   })
 
-  it('označuje sekce i přidávací akce variantou osoby…1047 tokens truncated…Terka, Leg press'), '32.5')
+  it('označuje sekce i přidávací akce variantou osoby bez viditelného opakování jména', async () => {
+    const { card } = await openLegPress()
+    expect(within(card).getByRole('region', { name: 'Lukáš' })).toHaveClass('person-sets', 'person-sets--lukas')
+    expect(within(card).getByRole('region', { name: 'Terka' })).toHaveClass('person-sets', 'person-sets--terka')
+    const lukasButton = within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' })
+    const terkaButton = within(card).getByRole('button', { name: 'Přidat sérii pro Terku' })
+    expect(lukasButton).toHaveClass('add-person-set--lukas')
+    expect(terkaButton).toHaveClass('add-person-set--terka')
+    expect(lukasButton).toHaveTextContent(/^\+ Přidat sérii$/)
+    expect(terkaButton).toHaveTextContent(/^\+ Přidat sérii$/)
+  })
+
+  it('všechny Lukášovy série jsou před první Terčinou sérií', async () => {
+    const { user, card } = await openLegPress()
+    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
+    const lastLukas = within(card).getByLabelText('Opakování, 2. série, Lukáš, Leg press')
+    const firstTerka = within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')
+    expect(lastLukas.compareDocumentPosition(firstTerka) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('v každém řádku je Opakování před Váhou', async () => {
+    const { card } = await openLegPress()
+    const row = within(card).getByRole('group', { name: '1. série, Lukáš, Leg press' })
+    const inputs = within(row).getAllByRole('textbox')
+    expect(inputs.map((input) => input.getAttribute('aria-label'))).toEqual([
+      'Opakování, 1. série, Lukáš, Leg press',
+      'Váha v kilogramech, 1. série, Lukáš, Leg press',
+    ])
+  })
+
+  it('každá série má vlastní koš s osobou, číslem série a cvikem v názvu', async () => {
+    const { user, card } = await openLegPress()
+    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
+    expect(within(card).getByRole('button', { name: 'Odstranit 1. sérii Lukáše u cviku Leg press' })).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Odstranit 1. sérii Terky u cviku Leg press' })).toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Odstranit 2. sérii Terky u cviku Leg press' })).toBeInTheDocument()
+  })
+
+  it('Lukášův koš nemaže Terčinu sérii', async () => {
+    const { user, card } = await openLegPress()
+    await user.click(within(card).getByRole('button', { name: 'Odstranit 1. sérii Lukáše u cviku Leg press' }))
+    expect(within(card).queryByLabelText('Opakování, 1. série, Lukáš, Leg press')).not.toBeInTheDocument()
+    expect(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')).toBeInTheDocument()
+  })
+
+  it('Terčin koš nemaže Lukášovu sérii', async () => {
+    const { user, card } = await openLegPress()
+    await user.click(within(card).getByRole('button', { name: 'Odstranit 1. sérii Terky u cviku Leg press' }))
+    expect(within(card).queryByLabelText('Opakování, 1. série, Terka, Leg press')).not.toBeInTheDocument()
+    expect(within(card).getByLabelText('Opakování, 1. série, Lukáš, Leg press')).toBeInTheDocument()
+  })
+
+  it('přidání série funguje samostatně pro obě osoby', async () => {
+    const { user, card } = await openLegPress()
+    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
+    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' }))
+    await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
+    expect(within(card).getAllByRole('group', { name: /Lukáš, Leg press/ })).toHaveLength(3)
+    expect(within(card).getAllByRole('group', { name: /Terka, Leg press/ })).toHaveLength(2)
+  })
+
+  it('nový řádek zdědí poslední hodnoty stejné osoby a cviku', async () => {
+    const { user, card } = await openLegPress()
+    await user.type(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press'), '11')
+    await user.type(within(card).getByLabelText('Váha v kilogramech, 1. série, Terka, Leg press'), '32.5')
     await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Terku' }))
     expect(within(card).getByLabelText('Opakování, 2. série, Terka, Leg press')).toHaveValue('11')
     expect(within(card).getByLabelText('Váha v kilogramech, 2. série, Terka, Leg press')).toHaveValue('32.5')
