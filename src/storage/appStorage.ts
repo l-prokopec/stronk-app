@@ -22,7 +22,7 @@ export const createInitialState = (): AppState => {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 const isTemplate = (value: unknown): value is ExerciseTemplate => isRecord(value) && typeof value.id === 'string' && typeof value.name === 'string' && typeof value.enabledByDefault === 'boolean' && typeof value.order === 'number'
 const isPersonSet = (value: unknown): value is PersonSet => isRecord(value) && typeof value.id === 'string' && typeof value.reps === 'string' && typeof value.weight === 'string'
-const isExercise = (value: unknown): value is WorkoutExercise => isRecord(value) && typeof value.id === 'string' && (value.exerciseTemplateId === null || typeof value.exerciseTemplateId === 'string') && typeof value.name === 'string' && typeof value.order === 'number' && isRecord(value.setsByPerson) && Array.isArray(value.setsByPerson.lukas) && value.setsByPerson.lukas.every(isPersonSet) && Array.isArray(value.setsByPerson.terka) && value.setsByPerson.terka.every(isPersonSet)
+const isExercise = (value: unknown): value is WorkoutExercise => isRecord(value) && typeof value.id === 'string' && (value.exerciseTemplateId === null || typeof value.exerciseTemplateId === 'string') && typeof value.name === 'string' && typeof value.order === 'number' && (value.isCompleted === undefined || typeof value.isCompleted === 'boolean') && isRecord(value.setsByPerson) && Array.isArray(value.setsByPerson.lukas) && value.setsByPerson.lukas.every(isPersonSet) && Array.isArray(value.setsByPerson.terka) && value.setsByPerson.terka.every(isPersonSet)
 const isWorkout = (value: unknown): value is Workout => isRecord(value) && typeof value.id === 'string' && typeof value.date === 'string' && typeof value.createdAt === 'string' && typeof value.updatedAt === 'string' && Array.isArray(value.exercises) && value.exercises.every(isExercise)
 const hasStateShape = (value: Record<string, unknown>) => Array.isArray(value.exerciseTemplates) && value.exerciseTemplates.every(isTemplate) && Array.isArray(value.workouts) && (value.activeWorkoutId === null || typeof value.activeWorkoutId === 'string')
 export const isAppState = (value: unknown): value is AppState => isRecord(value) && value.version === 2 && hasStateShape(value) && (value.workouts as unknown[]).every(isWorkout)
@@ -40,6 +40,7 @@ export const migrateV1State = (legacy: LegacyAppState): AppState => ({
     ...workout,
     exercises: workout.exercises.map(({ sets, ...exercise }) => ({
       ...exercise,
+      isCompleted: false,
       setsByPerson: {
         lukas: sets.map((set) => ({ id: createId(), reps: set.lukas.reps, weight: set.lukas.weight })),
         terka: sets.map((set) => ({ id: createId(), reps: set.terka.reps, weight: set.terka.weight })),

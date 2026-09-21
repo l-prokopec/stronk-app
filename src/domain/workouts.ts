@@ -12,7 +12,7 @@ export const createWorkout = (state: AppState, mode: WorkoutCreationMode = 'with
     : []
   return {
     id: workoutId, date: toLocalDate(currentDate), createdAt: timestamp, updatedAt: timestamp,
-    exercises: templates.map((template, order) => ({ id: createId(), exerciseTemplateId: template.id, name: template.name, order, setsByPerson: createInitialSetsByPerson() })),
+    exercises: templates.map((template, order) => ({ id: createId(), exerciseTemplateId: template.id, name: template.name, order, setsByPerson: createInitialSetsByPerson(), isCompleted: false })),
   }
 }
 

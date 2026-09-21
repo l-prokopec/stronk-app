@@ -38,15 +38,38 @@ describe('komponenty sérií podle osoby', () => {
     return { user, card }
   }
 
-  it('všechny cviky začínají sbalené a název přepíná jejich obsah', async () => {
+  it('při otevření rozbalí první nerozdělaný cvik a název přepíná jeho obsah', async () => {
     const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
-    const card = screen.getByRole('heading', { name: 'Leg press' }).closest<HTMLElement>('article')!
-    const toggle = within(card).getByRole('button', { name: 'Leg press' })
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(within(card).queryByRole('region', { name: 'Lukáš' })).not.toBeInTheDocument()
-    await user.click(toggle)
+    const card = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
+    const toggle = within(card).getByRole('button', { name: 'Kliky' })
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
     expect(within(card).getByRole('region', { name: 'Lukáš' })).toBeInTheDocument()
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(within(card).queryByRole('region', { name: 'Lukáš' })).not.toBeInTheDocument()
+  })
+
+  it('zobrazí stav cviku, po dokončení ho sbalí a otevře další vhodný cvik', async () => {
+    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const firstCard = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
+    const secondCard = screen.getByRole('heading', { name: 'Dead bug' }).closest<HTMLElement>('article')!
+    expect(firstCard.querySelector('.exercise-status--in-progress')).not.toBeInTheDocument()
+    await user.type(within(firstCard).getByLabelText('Opakování, 1. série, Lukáš, Kliky'), '12')
+    expect(firstCard.querySelector('.exercise-status--in-progress')).toBeInTheDocument()
+    await user.click(within(firstCard).getByRole('button', { name: 'Hotovo' }))
+    expect(firstCard.querySelector('.exercise-status--completed')).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'Kliky' })).toHaveAttribute('aria-expanded', 'false')
+    expect(within(secondCard).getByRole('button', { name: 'Dead bug' })).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('při otevření upřednostní první rozpracovaný cvik', () => {
+    let state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) })
+    const workout = state.workouts[0], exercise = workout.exercises.find((item) => item.name === 'Rumuni')!
+    state = appReducer(state, { type: 'UPDATE_PERSON_SET', workoutId: workout.id, exerciseId: exercise.id, person: 'lukas', setId: exercise.setsByPerson.lukas[0].id, field: 'reps', value: '8' })
+    setHistoryState(workoutHistoryState(workout.id))
+    renderApp(state)
+    const card = screen.getByRole('heading', { name: 'Rumuni' }).closest<HTMLElement>('article')!
+    expect(within(card).getByRole('button', { name: 'Rumuni' })).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('zobrazuje nejdříve sekci Lukáše a potom Terky', async () => {
@@ -165,7 +188,7 @@ describe('komponenty sérií podle osoby', () => {
     setHistoryState(workoutHistoryState(workoutId))
     renderStoredApp()
     const restoredCard = (await screen.findByRole('heading', { name: 'Leg press' })).closest<HTMLElement>('article')!
-    await user.click(within(restoredCard).getByRole('button', { name: 'Leg press' }))
+    expect(within(restoredCard).getByRole('button', { name: 'Leg press' })).toHaveAttribute('aria-expanded', 'true')
     expect(within(restoredCard).getByLabelText('Opakování, 1. série, Lukáš, Leg press')).toHaveValue('7')
     expect(within(restoredCard).getByLabelText('Opakování, 2. série, Lukáš, Leg press')).toHaveValue('7')
     expect(within(restoredCard).queryByLabelText('Opakování, 2. série, Terka, Leg press')).not.toBeInTheDocument()

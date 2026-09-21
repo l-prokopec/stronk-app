@@ -10,7 +10,7 @@ export function App() {
   return <div className="app-shell">
     {saveFailed && !state.activeWorkoutId && <div className="global-error" role="status">Data se nepodařilo uložit do prohlížeče.</div>}
     {state.activeWorkoutId
-      ? <WorkoutScreen onBack={navigation.backToHome} onDeleteWorkout={navigation.deleteOpenWorkout} />
+      ? <WorkoutScreen key={state.activeWorkoutId} onBack={navigation.backToHome} onDeleteWorkout={navigation.deleteOpenWorkout} />
       : navigation.screen === 'templates'
         ? <ExerciseTemplatesScreen onBack={navigation.backToHome} />
         : <HomeScreen onTemplates={navigation.openTemplates} onCreateWorkout={navigation.createWorkout} onOpenWorkout={navigation.openWorkout} />}
