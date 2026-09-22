@@ -1,5 +1,6 @@
 import { ExerciseTemplatesScreen } from '../features/templates/ExerciseTemplatesScreen'
 import { HomeScreen } from '../features/home/HomeScreen'
+import { PeopleSettingsScreen } from '../features/settings/PeopleSettingsScreen'
 import { WorkoutScreen } from '../features/workout/WorkoutScreen'
 import { useAppHistory } from '../navigation/useAppHistory'
 import { useApp } from './AppContext'
@@ -13,6 +14,8 @@ export function App() {
       ? <WorkoutScreen onBack={navigation.backToHome} onDeleteWorkout={navigation.deleteOpenWorkout} />
       : navigation.screen === 'templates'
         ? <ExerciseTemplatesScreen onBack={navigation.backToHome} />
-        : <HomeScreen onTemplates={navigation.openTemplates} onCreateWorkout={navigation.createWorkout} onOpenWorkout={navigation.openWorkout} />}
+        : navigation.screen === 'settings'
+          ? <PeopleSettingsScreen onBack={navigation.backToHome} />
+          : <HomeScreen onTemplates={navigation.openTemplates} onSettings={navigation.openSettings} onCreateWorkout={navigation.createWorkout} onOpenWorkout={navigation.openWorkout} />}
   </div>
 }

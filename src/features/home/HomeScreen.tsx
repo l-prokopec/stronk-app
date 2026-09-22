@@ -8,11 +8,11 @@ import { formatDate } from '../../utils/date'
 
 const exerciseCount = (count: number) => count === 1 ? '1 cvik' : count >= 2 && count <= 4 ? `${count} cviky` : `${count} cviků`
 
-export function HomeScreen({ onTemplates, onCreateWorkout, onOpenWorkout }: { onTemplates: () => void; onCreateWorkout: (mode: WorkoutCreationMode) => void; onOpenWorkout: (id: string) => void }) {
+export function HomeScreen({ onTemplates, onSettings, onCreateWorkout, onOpenWorkout }: { onTemplates: () => void; onSettings: () => void; onCreateWorkout: (mode: WorkoutCreationMode) => void; onOpenWorkout: (id: string) => void }) {
   const { state, dispatch } = useApp(); const workouts = sortWorkoutsNewestFirst(state.workouts)
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
   return <main>
-    <header className="home-header"><div><p className="eyebrow">Lukáš &amp; Terka</p><h1>Stronk App</h1></div><button className="secondary compact" onClick={onTemplates}>Výchozí cviky</button></header>
+    <header className="home-header"><div><p className="eyebrow">{state.people.map((person) => person.name).join(' & ')}</p><h1>Stronk App</h1></div><div className="header-actions"><button className="secondary compact" onClick={onSettings}>Lidé</button><button className="secondary compact" onClick={onTemplates}>Výchozí cviky</button></div></header>
     <div className="creation-actions">
       <button className="primary-action full" onClick={() => onCreateWorkout('withTemplates')}>Nový trénink</button>
       <button className="secondary full" onClick={() => onCreateWorkout('empty')}>Prázdný trénink</button>
