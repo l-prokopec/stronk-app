@@ -23,7 +23,7 @@ const legacyState = (): LegacyAppState => ({
 
 describe('appStorage', () => {
   it('vytvoří stav verze 3 při prázdném localStorage', () => { expect(loadState().version).toBe(3); expect(loadState().workouts).toEqual([]) })
-  it('počáteční stav obsahuje devět aktivních výchozích cviků', () => { const state = createInitialState(); expect(state.exerciseTemplates).toHaveLength(9); expect(state.exerciseTemplates.every((item) => item.enabledByDefault)).toBe(true) })
+  it('počáteční stav obsahuje devět aktivních výchozích cviků', () => { const state = createInitialState(); expect(state.exerciseTemplates).toHaveLength(12); expect(state.exerciseTemplates.every((item) => item.enabledByDefault)).toBe(true) })
   it('načte uložený validní stav verze 2 beze změny', () => { const state = createInitialState(); state.activeWorkoutId = 'abc'; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); expect(loadState()).toEqual(state) })
 
   it('migruje každou starou společnou sérii na jednu sérii pro každou osobu', () => {
