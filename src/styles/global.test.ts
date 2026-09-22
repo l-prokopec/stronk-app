@@ -22,6 +22,11 @@ describe('pastelový tmavý motiv', () => {
     expect(ruleBody('.person-sets')).not.toMatch(/background/i)
   })
 
+  it('používá neutrální černé překrytí pro potvrzovací dialogy', () => {
+    expect(ruleBody('.dialog-backdrop--confirm')).toMatch(/background:\s*rgb\(0 0 0 \/ 58%\)/)
+    expect(ruleBody('.dialog-backdrop')).toMatch(/backdrop-filter:\s*blur\(5px\)/)
+  })
+
   it('ponechává řádky bez rámečku karty a přidávací akci bez výplně', () => {
     expect(ruleBody('.person-set-row')).not.toMatch(/border(?:-radius)?:/i)
     expect(ruleBody('.add-person-set')).toMatch(/background:\s*transparent/i)
