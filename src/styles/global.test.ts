@@ -9,7 +9,7 @@ const ruleBody = (selector: string) => {
 describe('pastelový tmavý motiv', () => {
   it('centralizuje pastelové povrchy a samostatné akcenty osob', () => {
     expect(stylesheet).toMatch(/color-scheme:\s*dark/)
-    expect(stylesheet).toMatch(/--background:\s*#17141f/)
+    expect(stylesheet).toMatch(/--background:\s*#000000/)
     expect(stylesheet).toMatch(/--surface-card:\s*#[0-9a-f]{6}/i)
     expect(stylesheet).toMatch(/--surface-input:\s*#[0-9a-f]{6}/i)
     expect(stylesheet).toMatch(/--lukas-accent:\s*#[0-9a-f]{6}/i)
