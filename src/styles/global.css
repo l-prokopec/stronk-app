@@ -127,6 +127,7 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .exercise-status--in-progress { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: .72; }
 .exercise-status--completed { width: 23px; height: 23px; border-radius: 50%; color: #356d52; background: #ccefd8; font-size: .88rem; font-weight: 900; }
 .exercise-complete { width: 100%; min-height: 44px; margin-top: 1.2rem; border: 1px solid #a7ddbb; color: #356d52; background: #dff6e6; font-weight: 800; }
+.exercise-reopen { border-color: #efb3bd; color: #9e4e5e; background: #fde4e8; }
 .icon-danger { display: grid; place-items: center; width: 44px; min-width: 44px; padding: .65rem; color: var(--danger-muted); background: transparent; }
 .icon-danger svg { width: 20px; height: 20px; fill: currentColor; }
 .drag-handle { display: grid; place-items: center; width: 44px; min-width: 44px; padding: .6rem; color: var(--text-muted); background: transparent; cursor: grab; touch-action: none; }

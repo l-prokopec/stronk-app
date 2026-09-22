@@ -19,7 +19,7 @@ export function ExerciseCard({ workoutId, exercise, dragHandle, expanded, onTogg
     {expanded && <div className="exercise-card__content">
       <PersonSetsEditor workoutId={workoutId} exercise={exercise} person="lukas" displayName="Lukáš" genitiveName="Lukáše" addName="Lukáše" />
       <PersonSetsEditor workoutId={workoutId} exercise={exercise} person="terka" displayName="Terka" genitiveName="Terky" addName="Terku" />
-      {exercise.isCompleted ? <button className="exercise-complete" type="button" onClick={onReopen}>Zrušit dokončení</button> : <button className="exercise-complete" type="button" onClick={onComplete}>Dokončit</button>}
+      {exercise.isCompleted ? <button className="exercise-complete exercise-reopen" type="button" onClick={onReopen}>Zrušit dokončení</button> : <button className="exercise-complete" type="button" onClick={onComplete}>Dokončit</button>}
     </div>}
     {confirmRemove && <ConfirmDialog title={`Odstranit cvik ${exercise.name}?`} message="Cvik včetně všech jeho sérií bude odstraněn. Výchozí šablona ani starší tréninky se nezmění." onCancel={() => setConfirmRemove(false)} onConfirm={() => { dispatch({ type: 'REMOVE_EXERCISE', workoutId, exerciseId: exercise.id }); setConfirmRemove(false) }} />}
   </article>
