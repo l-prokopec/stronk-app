@@ -74,6 +74,20 @@ describe('komponenty sérií podle osoby', () => {
     expect(within(card).queryByRole('button', { name: 'Hotovo' })).not.toBeInTheDocument()
   })
 
+  it('fajfka zruší dokončení, zachová data a otevře pouze daný cvik', async () => {
+    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const firstCard = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
+    const secondCard = screen.getByRole('heading', { name: 'Dead bug' }).closest<HTMLElement>('article')!
+    await user.type(within(firstCard).getByLabelText('Opakování, 1. série, Lukáš, Kliky'), '12')
+    await user.click(within(firstCard).getByRole('button', { name: 'Hotovo' }))
+    expect(within(secondCard).getByRole('button', { name: 'Dead bug' })).toHaveAttribute('aria-expanded', 'true')
+    await user.click(within(firstCard).getByRole('button', { name: 'Zrušit dokončení cviku Kliky' }))
+    expect(within(firstCard).getByRole('button', { name: 'Kliky' })).toHaveAttribute('aria-expanded', 'true')
+    expect(within(secondCard).getByRole('button', { name: 'Dead bug' })).toHaveAttribute('aria-expanded', 'false')
+    expect(within(firstCard).getByLabelText('Opakování, 1. série, Lukáš, Kliky')).toHaveValue('12')
+    expect(within(firstCard).getByRole('button', { name: 'Hotovo' })).toBeInTheDocument()
+  })
+
   it('vyžaduje potvrzení před smazáním série i cviku', async () => {
     const { user, card } = await openLegPress()
     await user.click(within(card).getByRole('button', { name: 'Odstranit 1. sérii Lukáše u cviku Leg press' }))

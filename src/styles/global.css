@@ -117,7 +117,7 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .exercise-list { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: .8rem; }
 .exercise-card { max-width: 100%; min-width: 0; padding: .55rem; border: 1px solid var(--border-card); border-radius: 18px; background: var(--surface-card); box-shadow: var(--shadow-card); }
 .card-heading { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: .25rem; }
-.card-heading h3 { min-width: 0; }
+.card-heading h3 { display: flex; align-items: center; min-width: 0; }
 .exercise-toggle { display: flex; align-items: center; justify-content: space-between; gap: .6rem; width: 100%; min-width: 0; padding: .7rem .45rem; color: var(--text-primary); background: transparent; text-align: left; }
 .exercise-toggle > span:first-child { min-width: 0; margin-right: auto; overflow-wrap: anywhere; }
 .exercise-toggle svg { width: 20px; height: 20px; flex: 0 0 20px; fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
@@ -125,7 +125,8 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .exercise-card__content { padding: .6rem .55rem .55rem; border-top: 1px solid var(--border-subtle); }
 .exercise-status { display: inline-grid; place-items: center; flex: 0 0 auto; }
 .exercise-status--in-progress { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: .72; }
-.exercise-status--completed { width: 23px; height: 23px; border-radius: 50%; color: #356d52; background: #ccefd8; font-size: .88rem; font-weight: 900; }
+.exercise-status--completed { width: 23px; height: 23px; border-radius: 50%; padding: 0; color: #356d52; background: #ccefd8; font-size: .88rem; font-weight: 900; cursor: pointer; }
+.exercise-status--completed:focus-visible { outline: 2px solid #6aaa81; outline-offset: 2px; }
 .exercise-complete { width: 100%; min-height: 44px; margin-top: 1.2rem; border: 1px solid #a7ddbb; color: #356d52; background: #dff6e6; font-weight: 800; }
 .icon-danger { display: grid; place-items: center; width: 44px; min-width: 44px; padding: .65rem; color: var(--danger-muted); background: transparent; }
 .icon-danger svg { width: 20px; height: 20px; fill: currentColor; }
