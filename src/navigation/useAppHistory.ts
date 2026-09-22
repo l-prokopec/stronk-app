@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../app/AppContext'
 import type { WorkoutCreationMode } from '../types/workout'
 import { createId } from '../utils/id'
-import { currentAppHistoryState, ensureHomeHistoryEntry, isAppHistoryState, pushSettingsHistory, pushTemplatesHistory, pushWorkoutHistory, replaceHomeHistory } from './appHistory'
+import { currentAppHistoryState, ensureHomeHistoryEntry, isAppHistoryState, pushTemplatesHistory, pushWorkoutHistory, replaceHomeHistory } from './appHistory'
 
-type AppScreen = 'home' | 'templates' | 'settings'
+type AppScreen = 'home' | 'templates'
 
 export function useAppHistory() {
   const { state, dispatch } = useApp()
@@ -26,7 +26,6 @@ export function useAppHistory() {
         setScreen('templates')
         return
       }
-      if (historyState.screen === 'settings') { dispatch({ type: 'CLOSE_WORKOUT' }); setScreen('settings'); return }
       if (stateRef.current.workouts.some((workout) => workout.id === historyState.workoutId)) {
         setScreen('home')
         dispatch({ type: 'OPEN_WORKOUT', id: historyState.workoutId })
@@ -44,8 +43,6 @@ export function useAppHistory() {
     } else if (initialState.screen === 'home') {
       if (stateRef.current.activeWorkoutId) dispatch({ type: 'CLOSE_WORKOUT' })
     } else if (initialState.screen === 'templates') {
-      if (stateRef.current.activeWorkoutId) dispatch({ type: 'CLOSE_WORKOUT' })
-    } else if (initialState.screen === 'settings') {
       if (stateRef.current.activeWorkoutId) dispatch({ type: 'CLOSE_WORKOUT' })
     } else if (stateRef.current.workouts.some((workout) => workout.id === initialState.workoutId)) {
       dispatch({ type: 'OPEN_WORKOUT', id: initialState.workoutId })
@@ -81,7 +78,6 @@ export function useAppHistory() {
     setScreen('templates')
     pushTemplatesHistory()
   }, [dispatch])
-  const openSettings = useCallback(() => { ensureHomeHistoryEntry(); dispatch({ type: 'CLOSE_WORKOUT' }); setScreen('settings'); pushSettingsHistory() }, [dispatch])
 
   const backToHome = useCallback(() => {
     const current = currentAppHistoryState()
@@ -100,5 +96,5 @@ export function useAppHistory() {
     replaceHomeHistory()
   }, [dispatch])
 
-  return { screen, openWorkout, createWorkout, openTemplates, openSettings, backToHome, deleteOpenWorkout }
+  return { screen, openWorkout, createWorkout, openTemplates, backToHome, deleteOpenWorkout }
 }

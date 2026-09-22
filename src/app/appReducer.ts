@@ -1,5 +1,5 @@
 import { createInitialSetsByPerson, createPersonSet, createTemplate, createWorkout } from '../domain/workouts'
-import type { AppState, Person, PersonProfile, WorkoutCreationMode } from '../types/workout'
+import type { AppState, Person, WorkoutCreationMode } from '../types/workout'
 import { cleanExerciseName, normalizeExerciseName } from '../utils/exerciseName'
 import { createId } from '../utils/id'
 
@@ -21,7 +21,6 @@ export type AppAction =
   | { type: 'TOGGLE_TEMPLATE'; id: string }
   | { type: 'DELETE_TEMPLATE'; id: string }
   | { type: 'REORDER_TEMPLATES'; activeId: string; overId: string }
-  | { type: 'SAVE_PEOPLE'; people: PersonProfile[] }
 
 const now = () => new Date().toISOString()
 const updateWorkout = (state: AppState, id: string, transform: (workout: AppState['workouts'][number]) => AppState['workouts'][number]): AppState => ({
@@ -49,7 +48,7 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'UPDATE_DATE': return updateWorkout(state, action.workoutId, (workout) => ({ ...workout, date: action.date }))
     case 'ADD_EXERCISE': {
       const name = cleanExerciseName(action.name)
-      let next = updateWorkout(state, action.workoutId, (workout) => ({ ...workout, exercises: [...workout.exercises, { id: createId(), exerciseTemplateId: null, name, order: workout.exercises.length, setsByPerson: createInitialSetsByPerson(workout.people), isCompleted: false }] }))
+      let next = updateWorkout(state, action.workoutId, (workout) => ({ ...workout, exercises: [...workout.exercises, { id: createId(), exerciseTemplateId: null, name, order: workout.exercises.length, setsByPerson: createInitialSetsByPerson(), isCompleted: false }] }))
       if (action.addToTemplates) {
         const existing = next.exerciseTemplates.find((template) => normalizeExerciseName(template.name) === normalizeExerciseName(name))
         next = existing
@@ -83,6 +82,5 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       if (reordered === sorted) return state
       return { ...state, exerciseTemplates: reordered.map((item, order) => ({ ...item, order, updatedAt: item.id === action.activeId ? now() : item.updatedAt })) }
     }
-    case 'SAVE_PEOPLE': return { ...state, people: action.people }
   }
 }

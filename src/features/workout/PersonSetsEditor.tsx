@@ -1,19 +1,16 @@
 import { useState } from 'react'
 import { useApp } from '../../app/AppContext'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
-import type { CSSProperties } from 'react'
 import type { Person, WorkoutExercise } from '../../types/workout'
 import { SetRow } from './SetRow'
 
-export function PersonSetsEditor({ workoutId, exercise, person, displayName, color }: { workoutId: string; exercise: WorkoutExercise; person: Person; displayName: string; color: string }) {
+export function PersonSetsEditor({ workoutId, exercise, person, displayName, genitiveName, addName }: { workoutId: string; exercise: WorkoutExercise; person: Person; displayName: string; genitiveName: string; addName: string }) {
   const { dispatch } = useApp()
   const [pendingDelete, setPendingDelete] = useState<{ id: string; number: number } | null>(null)
   const sets = exercise.setsByPerson[person]
   const headingId = `${exercise.id}-${person}-sets`
 
-  const addName = person === 'lukas' ? 'Lukáše' : person === 'terka' ? 'Terku' : displayName
-  const genitiveName = person === 'lukas' ? 'Lukáše' : person === 'terka' ? 'Terky' : displayName
-  return <section className={`person-sets person-sets--${person}`} aria-labelledby={headingId} style={{ '--person-color': color } as CSSProperties}>
+  return <section className={`person-sets person-sets--${person}`} aria-labelledby={headingId}>
     <div className="person-sets__heading"><h4 id={headingId}>{displayName}</h4></div>
     <div className="person-set-grid person-set-header" aria-hidden="true"><span>Série</span><span>Opakování</span><span>Váha (kg)</span><span /></div>
     {sets.length === 0
@@ -21,7 +18,7 @@ export function PersonSetsEditor({ workoutId, exercise, person, displayName, col
       : sets.map((set, index) => <SetRow key={set.id} set={set} index={index} displayName={displayName} genitiveName={genitiveName} exerciseName={exercise.name}
           onChange={(field, value) => dispatch({ type: 'UPDATE_PERSON_SET', workoutId, exerciseId: exercise.id, person, setId: set.id, field, value })}
           onRemove={() => setPendingDelete({ id: set.id, number: index + 1 })} />)}
-    <button className={`add-person-set add-person-set--${person}`} style={{ color }} aria-label={`Přidat sérii pro ${addName}`} onClick={() => dispatch({ type: 'ADD_PERSON_SET', workoutId, exerciseId: exercise.id, person })}>+ Přidat sérii</button>
+    <button className={`add-person-set add-person-set--${person}`} aria-label={`Přidat sérii pro ${addName}`} onClick={() => dispatch({ type: 'ADD_PERSON_SET', workoutId, exerciseId: exercise.id, person })}>+ Přidat sérii</button>
     {pendingDelete && <ConfirmDialog title={`Odstranit ${pendingDelete.number}. sérii ${genitiveName}?`} message="Hodnoty v této sérii budou odstraněny." onCancel={() => setPendingDelete(null)} onConfirm={() => { dispatch({ type: 'DELETE_PERSON_SET', workoutId, exerciseId: exercise.id, person, setId: pendingDelete.id }); setPendingDelete(null) }} />}
   </section>
 }

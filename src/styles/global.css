@@ -141,7 +141,6 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .person-sets__heading::before { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: currentColor; content: ""; }
 .person-sets--lukas .person-sets__heading { color: var(--lukas-accent); }
 .person-sets--terka .person-sets__heading { color: var(--terka-accent); }
-.person-sets__heading { color: var(--person-color); }
 .person-set-grid { display: grid; grid-template-columns: minmax(28px, auto) minmax(0, 1fr) minmax(0, 1fr) 44px; align-items: center; gap: .55rem; min-width: 0; }
 .person-set-header { margin-bottom: .35rem; color: var(--text-secondary); font-size: .68rem; font-weight: 750; line-height: 1.15; }.person-set-header span:not(:first-child) { text-align: center; }
 .person-set-row { padding-block: .15rem; }
