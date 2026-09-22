@@ -7,15 +7,15 @@ import { AddExerciseDialog } from './AddExerciseDialog'
 import { ExerciseCard } from './ExerciseCard'
 import type { WorkoutExercise } from '../../types/workout'
 
-const hasValues = (exercise: WorkoutExercise) => (['lukas', 'terka'] as const).some((person) => exercise.setsByPerson[person].some((set) => set.weight || set.reps))
-const nextExerciseId = (exercises: WorkoutExercise[]) => exercises.find((exercise) => !exercise.isCompleted && hasValues(exercise))?.id ?? exercises.find((exercise) => !exercise.isCompleted)?.id ?? null
+const hasValues = (exercise: WorkoutExercise, people: { id: string }[]) => people.some((person) => exercise.setsByPerson[person.id].some((set) => set.weight || set.reps))
+const nextExerciseId = (exercises: WorkoutExercise[], people: { id: string }[]) => exercises.find((exercise) => !exercise.isCompleted && hasValues(exercise, people))?.id ?? exercises.find((exercise) => !exercise.isCompleted)?.id ?? null
 
 export function WorkoutScreen({ onBack, onDeleteWorkout }: { onBack: () => void; onDeleteWorkout: (id: string) => void }) {
   const { state, dispatch, saveFailed } = useApp()
   const workout = state.workouts.find((item) => item.id === state.activeWorkoutId)
-  const [showAdd, setShowAdd] = useState(false); const [confirmDelete, setConfirmDelete] = useState(false); const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(() => workout ? nextExerciseId(workout.exercises) : null)
+  const [showAdd, setShowAdd] = useState(false); const [confirmDelete, setConfirmDelete] = useState(false); const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(() => workout ? nextExerciseId(workout.exercises, workout.people) : null)
   if (!workout) return <main><button className="back-button" onClick={onBack}>← Zpět</button><EmptyState title="Trénink nebyl nalezen">Mohl být odstraněn v jiné kartě prohlížeče.</EmptyState></main>
-  const completeExercise = (exerciseId: string) => { const remaining = workout.exercises.map((exercise) => exercise.id === exerciseId ? { ...exercise, isCompleted: true } : exercise); setExpandedExerciseId(nextExerciseId(remaining)); dispatch({ type: 'COMPLETE_EXERCISE', workoutId: workout.id, exerciseId }) }
+  const completeExercise = (exerciseId: string) => { const remaining = workout.exercises.map((exercise) => exercise.id === exerciseId ? { ...exercise, isCompleted: true } : exercise); setExpandedExerciseId(nextExerciseId(remaining, workout.people)); dispatch({ type: 'COMPLETE_EXERCISE', workoutId: workout.id, exerciseId }) }
   return <main className="workout-screen">
     <header className="screen-header workout-screen__header"><button className="back-button" onClick={onBack}>← Zpět</button><span className={saveFailed ? 'save-error' : 'saved'} role="status">{saveFailed ? 'Data se nepodařilo uložit do prohlížeče.' : 'Uloženo'}</span></header>
     <div className="workout-screen__content">
@@ -27,7 +27,7 @@ export function WorkoutScreen({ onBack, onDeleteWorkout }: { onBack: () => void;
               ids={workout.exercises.map((exercise) => exercise.id)}
               onReorder={(activeId, overId) => dispatch({ type: 'REORDER_EXERCISES', workoutId: workout.id, activeId, overId })}
             >
-              {workout.exercises.map((exercise) => <SortableItem key={exercise.id} id={exercise.id}>{(handle) => <ExerciseCard workoutId={workout.id} exercise={exercise} dragHandle={handle} expanded={expandedExerciseId === exercise.id} onToggle={() => setExpandedExerciseId((current) => current === exercise.id ? null : exercise.id)} onComplete={() => completeExercise(exercise.id)} />}</SortableItem>)}
+              {workout.exercises.map((exercise) => <SortableItem key={exercise.id} id={exercise.id}>{(handle) => <ExerciseCard workoutId={workout.id} exercise={exercise} people={workout.people} dragHandle={handle} expanded={expandedExerciseId === exercise.id} onToggle={() => setExpandedExerciseId((current) => current === exercise.id ? null : exercise.id)} onComplete={() => completeExercise(exercise.id)} />}</SortableItem>)}
             </SortableList>}
       </section>
       <div className="bottom-actions"><button className="primary-action full workout-screen__primary-action" onClick={() => setShowAdd(true)}>+ Přidat cvik</button><button className="text-danger full" onClick={() => setConfirmDelete(true)}>Odstranit celý trénink</button></div>
