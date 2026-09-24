@@ -18,6 +18,7 @@ export type AppAction =
   | { type: 'COMPLETE_EXERCISE'; workoutId: string; exerciseId: string }
   | { type: 'REOPEN_EXERCISE'; workoutId: string; exerciseId: string }
   | { type: 'ADD_WORKOUT_TEMPLATE'; name: string }
+  | { type: 'DUPLICATE_WORKOUT_TEMPLATE'; id: string; newId: string }
   | { type: 'RENAME_WORKOUT_TEMPLATE'; id: string; name: string }
   | { type: 'DELETE_WORKOUT_TEMPLATE'; id: string }
   | { type: 'ADD_TEMPLATE'; workoutTemplateId: string; name: string }
@@ -84,6 +85,17 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
       if (!name || state.workoutTemplates.some((item) => normalizeExerciseName(item.name) === normalizeExerciseName(name))) return state
       const timestamp = now()
       return { ...state, workoutTemplates: [...state.workoutTemplates, { id: createId(), name, exercises: [], createdAt: timestamp, updatedAt: timestamp }] }
+    }
+    case 'DUPLICATE_WORKOUT_TEMPLATE': {
+      const source = state.workoutTemplates.find((item) => item.id === action.id)
+      if (!source || state.workoutTemplates.some((item) => item.id === action.newId)) return state
+      const copyName = (suffix: string) => `${source.name.slice(0, 80 - suffix.length).trimEnd()}${suffix}`
+      let name = copyName(' (kopie)')
+      let suffix = 2
+      while (state.workoutTemplates.some((item) => normalizeExerciseName(item.name) === normalizeExerciseName(name))) name = copyName(` (kopie ${suffix++})`)
+      const timestamp = now()
+      return { ...state, workoutTemplates: [...state.workoutTemplates, { id: action.newId, name, createdAt: timestamp, updatedAt: timestamp,
+        exercises: source.exercises.map((exercise) => ({ ...exercise, id: createId(), createdAt: timestamp, updatedAt: timestamp })) }] }
     }
     case 'RENAME_WORKOUT_TEMPLATE': {
       const name = cleanExerciseName(action.name)

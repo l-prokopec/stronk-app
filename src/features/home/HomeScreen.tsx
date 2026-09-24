@@ -23,7 +23,7 @@ export function HomeScreen({ onTemplates, onCreateWorkout, onOpenWorkout }: { on
           const date = formatDate(workout.date)
           return <div className="workout-row" key={workout.id}>
             <button className="workout-open" onClick={() => onOpenWorkout(workout.id)}>
-              <span><strong>{date}</strong><small>{exerciseCount(workout.exercises.length)}</small></span><span className="row-arrow" aria-hidden="true">›</span>
+              <span><strong>{date} · {workout.sourceTemplateName}</strong><small>{exerciseCount(workout.exercises.length)}</small></span><span className="row-arrow" aria-hidden="true">›</span>
             </button>
             <button className="workout-delete" aria-label={`Odstranit trénink z ${date}`} onClick={() => setWorkoutToDelete(workout)}>
               <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 3h6l1 2h4v2H4V5h4l1-2Zm-3 6h12l-1 12H7L6 9Zm4 2v7h2v-7h-2Zm4 0v7h2v-7h-2Z" /></svg>

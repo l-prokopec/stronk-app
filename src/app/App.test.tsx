@@ -25,7 +25,7 @@ describe('uživatelské chování', () => {
   it('validuje prázdný název vlastního cviku a pak cvik přidá', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); await user.click(screen.getByRole('button', { name: '+ Přidat cvik' })); const dialog = screen.getByRole('dialog'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(within(dialog).getByText('Zadejte název cviku.')).toBeInTheDocument(); await user.type(within(dialog).getByLabelText('Název cviku'), 'Hip thrust'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(screen.getByRole('heading', { name: 'Hip thrust' })).toBeInTheDocument() })
   it('spravuje aktivaci výchozího cviku', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Šablony tréninků' })); await user.click(screen.getByRole('button', { name: /Výchozí trénink/ })); const toggle = screen.getByRole('checkbox', { name: 'Přidávat cvik Leg press do nových tréninků' }); expect(toggle).toBeChecked(); await user.click(toggle); expect(toggle).not.toBeChecked() })
   it('zobrazuje dotykové úchytky pro pořadí cviků i výchozích cviků', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); expect(screen.getByRole('button', { name: 'Přesunout cvik Leg press' })).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: '← Zpět' })); act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: HOME_HISTORY_STATE }))); await user.click(await screen.findByRole('button', { name: 'Šablony tréninků' })); await user.click(screen.getByRole('button', { name: /Výchozí trénink/ })); expect(screen.getByRole('button', { name: 'Přesunout výchozí cvik Leg press' })).toBeInTheDocument() })
-  it('zruší odstranění tréninku z dashboardu bez otevření detailu', async () => { const user = userEvent.setup(); let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); expect(screen.queryByLabelText('Datum tréninku')).not.toBeInTheDocument(); const dialog = screen.getByRole('alertdialog'); expect(within(dialog).getByText(/14\. 7\. 2026/)).toBeInTheDocument(); await user.click(within(dialog).getByRole('button', { name: 'Zrušit' })); expect(screen.getByText('14. 7. 2026')).toBeInTheDocument() })
+  it('zruší odstranění tréninku z dashboardu bez otevření detailu', async () => { const user = userEvent.setup(); let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); expect(screen.queryByLabelText('Datum tréninku')).not.toBeInTheDocument(); const dialog = screen.getByRole('alertdialog'); expect(within(dialog).getByText(/14\. 7\. 2026/)).toBeInTheDocument(); await user.click(within(dialog).getByRole('button', { name: 'Zrušit' })); expect(screen.getByText('14. 7. 2026 · Výchozí trénink')).toBeInTheDocument() })
   it('potvrdí odstranění posledního tréninku a změnu uloží', async () => { const user = userEvent.setup(); let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' })); expect(screen.getByText('Zatím žádný trénink')).toBeInTheDocument(); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts).toEqual([]) }) })
 
   it('vytvoří druhou šablonu, vybere ji a uloží kopii cviků do tréninku', async () => {
@@ -46,6 +46,33 @@ describe('uživatelské chování', () => {
     expect(screen.getByRole('heading', { name: 'Výpady' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Kliky' })).not.toBeInTheDocument()
     await waitFor(() => expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].exercises.map((exercise) => exercise.name)).toEqual(['Výpady']))
+  })
+
+  it('duplikuje šablonu a umožní upravit její cviky bez změny originálu', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Šablony tréninků' }))
+    await user.click(screen.getByRole('button', { name: 'Duplikovat' }))
+    expect(screen.getByRole('heading', { name: 'Výchozí trénink (kopie)' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Nový výchozí cvik'), 'Hip thrust')
+    await user.click(screen.getByRole('button', { name: 'Přidat' }))
+    await user.click(screen.getByRole('button', { name: '← Šablony' }))
+    expect(screen.getByRole('button', { name: /Výchozí trénink12 aktivních cviků/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Výchozí trénink \(kopie\)13 aktivních cviků/ })).toBeInTheDocument()
+    dispatchPopState(HOME_HISTORY_STATE)
+    await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Výchozí trénink (kopie)' }))
+    expect(screen.getByRole('heading', { name: 'Hip thrust' })).toBeInTheDocument()
+    await waitFor(() => expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].sourceTemplateName).toBe('Výchozí trénink (kopie)'))
+  })
+
+  it('u starého tréninku zachová název zdrojové šablony i po přejmenování a smazání', () => {
+    let state = stateWithClosedWorkout()
+    const templateId = state.workoutTemplates[0].id
+    state = appReducer(state, { type: 'RENAME_WORKOUT_TEMPLATE', id: templateId, name: 'Nový název' })
+    state = appReducer(state, { type: 'DELETE_WORKOUT_TEMPLATE', id: templateId })
+    renderApp(state)
+    expect(screen.getByText('14. 7. 2026 · Výchozí trénink')).toBeInTheDocument()
   })
 })
 

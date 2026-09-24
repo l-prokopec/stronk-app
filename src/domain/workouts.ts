@@ -10,7 +10,7 @@ export const createWorkout = (state: AppState, templateId: string | null = state
   const source = state.workoutTemplates.find((item) => item.id === templateId)
   const templates = [...(source?.exercises ?? [])].filter((item) => item.enabledByDefault).sort((a, b) => a.order - b.order)
   return {
-    id: workoutId, date: toLocalDate(currentDate), sourceTemplateId: source?.id ?? null, createdAt: timestamp, updatedAt: timestamp,
+    id: workoutId, date: toLocalDate(currentDate), sourceTemplateId: source?.id ?? null, sourceTemplateName: source?.name ?? 'Prázdný trénink', createdAt: timestamp, updatedAt: timestamp,
     exercises: templates.map((template, order) => ({ id: createId(), exerciseTemplateId: template.id, name: template.name, order, setsByPerson: createInitialSetsByPerson(), isCompleted: false })),
   }
 }

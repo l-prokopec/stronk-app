@@ -4,5 +4,5 @@ export type ExerciseSetsByPerson = Record<Person, PersonSet[]>
 export type ExerciseTemplate = { id: string; name: string; enabledByDefault: boolean; order: number; createdAt: string; updatedAt: string }
 export type WorkoutTemplate = { id: string; name: string; exercises: ExerciseTemplate[]; createdAt: string; updatedAt: string }
 export type WorkoutExercise = { id: string; exerciseTemplateId: string | null; name: string; order: number; setsByPerson: ExerciseSetsByPerson; isCompleted?: boolean }
-export type Workout = { id: string; date: string; sourceTemplateId?: string | null; exercises: WorkoutExercise[]; createdAt: string; updatedAt: string }
-export type AppState = { version: 3; workoutTemplates: WorkoutTemplate[]; workouts: Workout[]; activeWorkoutId: string | null }
+export type Workout = { id: string; date: string; sourceTemplateId?: string | null; sourceTemplateName: string; exercises: WorkoutExercise[]; createdAt: string; updatedAt: string }
+export type AppState = { version: 4; workoutTemplates: WorkoutTemplate[]; workouts: Workout[]; activeWorkoutId: string | null }

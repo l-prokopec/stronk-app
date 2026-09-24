@@ -22,7 +22,7 @@ const legacyState = (): LegacyAppState => ({
 })
 
 describe('appStorage', () => {
-  it('vytvoří stav verze 3 při prázdném localStorage', () => { expect(loadState().version).toBe(3); expect(loadState().workouts).toEqual([]) })
+  it('vytvoří stav verze 4 při prázdném localStorage', () => { expect(loadState().version).toBe(4); expect(loadState().workouts).toEqual([]) })
   it('počáteční stav obsahuje dvanáct aktivních výchozích cviků ve správném pořadí', () => {
     const state = createInitialState()
     expect(state.workoutTemplates).toHaveLength(1)
@@ -30,7 +30,7 @@ describe('appStorage', () => {
     expect(state.workoutTemplates[0].exercises.map(({ order }) => order)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
     expect(state.workoutTemplates[0].exercises.every((item) => item.enabledByDefault)).toBe(true)
   })
-  it('načte uložený validní stav verze 3 beze změny', () => { const state = createInitialState(); state.activeWorkoutId = 'abc'; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); expect(loadState()).toEqual(state) })
+  it('načte uložený validní stav verze 4 beze změny', () => { const state = createInitialState(); state.activeWorkoutId = 'abc'; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); expect(loadState()).toEqual(state) })
 
   it('migruje každou starou společnou sérii na jednu sérii pro každou osobu', () => {
     const migrated = migrateV1State(legacyState())
@@ -72,11 +72,11 @@ describe('appStorage', () => {
     expect(localStorage.getItem(backupKey!)).toBe(raw)
   })
 
-  it('migraci provede pouze jednou a pod hlavní klíč uloží verzi 3', () => {
+  it('migraci provede pouze jednou a pod hlavní klíč uloží verzi 4', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(legacyState()))
-    expect(loadState().version).toBe(3)
-    expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).version).toBe(3)
-    expect(loadState().version).toBe(3)
+    expect(loadState().version).toBe(4)
+    expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).version).toBe(4)
+    expect(loadState().version).toBe(4)
     expect(Object.keys(localStorage).filter((key) => key.startsWith(MIGRATION_BACKUP_PREFIX))).toHaveLength(1)
   })
 
@@ -91,7 +91,22 @@ describe('appStorage', () => {
     expect(migrated.workoutTemplates[0].exercises).toEqual(old.workoutTemplates[0].exercises)
     expect(migrated.workouts[0]).toMatchObject(workout)
     expect(migrated.workouts[0].sourceTemplateId).toBe(migrated.workoutTemplates[0].id)
+    expect(migrated.workouts[0].sourceTemplateName).toBe('Výchozí trénink')
     expect(migrated.activeWorkoutId).toBe(workout.id)
+    expect(localStorage.getItem(Object.keys(localStorage).find((key) => key.startsWith(MIGRATION_BACKUP_PREFIX))!)).toBe(raw)
+  })
+
+  it('migruje verzi 3 a doplní název šablony bez změny tréninku a sérií', () => {
+    const state = createInitialState()
+    const source = state.workoutTemplates[0]
+    source.name = 'Full body'
+    const workout = { id: 'old-workout', date: '2026-07-23', sourceTemplateId: source.id, createdAt: '2026-07-23T10:00:00Z', updatedAt: '2026-07-23T11:00:00Z', exercises: [{ id: 'old-exercise', exerciseTemplateId: source.exercises[0].id, name: 'Kliky', order: 0, isCompleted: true, setsByPerson: { lukas: [{ id: 'a', reps: '12', weight: '5' }], terka: [{ id: 'b', reps: '8', weight: '' }] } }] }
+    const raw = JSON.stringify({ ...state, version: 3, workouts: [workout, { ...workout, id: 'empty', sourceTemplateId: null }, { ...workout, id: 'deleted', sourceTemplateId: 'deleted-template' }] })
+    localStorage.setItem(STORAGE_KEY, raw)
+    const migrated = loadState()
+    expect(migrated.workouts.map((item) => item.sourceTemplateName)).toEqual(['Full body', 'Prázdný trénink', 'Smazaná šablona'])
+    expect(migrated.workouts[0]).toMatchObject(workout)
+    expect(migrated.workouts[0].exercises).toEqual(workout.exercises)
     expect(localStorage.getItem(Object.keys(localStorage).find((key) => key.startsWith(MIGRATION_BACKUP_PREFIX))!)).toBe(raw)
   })
 

@@ -166,12 +166,30 @@ describe('šablony tréninků', () => {
     const workout = state.workouts[0]
     expect(workout.exercises.map((item) => item.name)).toEqual(['Výpady', 'Dřepy'])
     expect(workout.sourceTemplateId).toBe(legsId)
+    expect(workout.sourceTemplateName).toBe('Nohy')
     state = appReducer(state, { type: 'RENAME_TEMPLATE', workoutTemplateId: legsId, id: second.id, name: 'Jiné výpady' })
     state = appReducer(state, { type: 'DELETE_TEMPLATE', workoutTemplateId: legsId, id: first.id })
     state = appReducer(state, { type: 'RENAME_WORKOUT_TEMPLATE', id: legsId, name: 'Spodní část' })
     expect(state.workoutTemplates[0].id).toBe(originalId)
     expect(state.workoutTemplates[0].exercises).toHaveLength(12)
     expect(state.workouts[0]).toEqual(workout)
+  })
+
+  it('duplikuje seznam včetně pořadí a aktivace do samostatné šablony', () => {
+    let state = createInitialState()
+    const source = state.workoutTemplates[0]
+    state = appReducer(state, { type: 'TOGGLE_TEMPLATE', workoutTemplateId: source.id, id: source.exercises[1].id })
+    state = appReducer(state, { type: 'REORDER_TEMPLATES', workoutTemplateId: source.id, activeId: source.exercises[0].id, overId: source.exercises[2].id })
+    state = appReducer(state, { type: 'DUPLICATE_WORKOUT_TEMPLATE', id: source.id, newId: 'copy-1' })
+    const original = state.workoutTemplates[0], copy = state.workoutTemplates[1]
+    expect(copy).toMatchObject({ id: 'copy-1', name: 'Výchozí trénink (kopie)' })
+    expect(copy.exercises.map(({ name, order, enabledByDefault }) => ({ name, order, enabledByDefault }))).toEqual(original.exercises.map(({ name, order, enabledByDefault }) => ({ name, order, enabledByDefault })))
+    expect(copy.exercises.map((item) => item.id).every((id) => !original.exercises.some((item) => item.id === id))).toBe(true)
+    state = appReducer(state, { type: 'RENAME_TEMPLATE', workoutTemplateId: copy.id, id: copy.exercises[0].id, name: 'Vlastní cvik' })
+    expect(state.workoutTemplates[0].exercises[0].name).toBe(original.exercises[0].name)
+    state = appReducer(state, { type: 'DUPLICATE_WORKOUT_TEMPLATE', id: source.id, newId: 'copy-2' })
+    expect(state.workoutTemplates[2].name).toBe('Výchozí trénink (kopie 2)')
+    expect(appReducer(state, { type: 'DUPLICATE_WORKOUT_TEMPLATE', id: 'missing', newId: 'copy-3' })).toBe(state)
   })
 
   it('smazání šablony zachová historický trénink včetně sérií a dokončení', () => {
