@@ -82,6 +82,11 @@ main { width: 100%; min-width: 0; padding: max(1.1rem, env(safe-area-inset-top))
 .workout-screen__header > * { min-width: 0; max-width: 100%; }
 .workout-screen__content { display: flex; flex-direction: column; width: 100%; max-width: 100%; min-width: 0; padding-inline: 0; }
 .workout-screen__content > * { min-width: 0; max-width: 100%; }
+.workout-name-section { margin-bottom: 1.3rem; }
+.workout-name-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.workout-name-heading h1 { min-width: 0; font-size: clamp(1.5rem, 6vw, 2rem); }
+.workout-name-heading button { flex: none; }
+.workout-name-section form input { display: block; width: 100%; margin-top: .45rem; }
 .workout-date-section, .workout-exercises { width: 100%; max-width: 100%; min-width: 0; margin-inline: 0; padding-inline: 0; }
 .date-field { margin-bottom: 1.2rem; }.date-field label { margin-bottom: .45rem; }
 .workout-date-input[type="date"] {

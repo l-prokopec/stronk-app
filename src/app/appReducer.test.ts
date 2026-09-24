@@ -167,12 +167,26 @@ describe('šablony tréninků', () => {
     expect(workout.exercises.map((item) => item.name)).toEqual(['Výpady', 'Dřepy'])
     expect(workout.sourceTemplateId).toBe(legsId)
     expect(workout.sourceTemplateName).toBe('Nohy')
+    expect(workout.name).toBe('Nohy')
     state = appReducer(state, { type: 'RENAME_TEMPLATE', workoutTemplateId: legsId, id: second.id, name: 'Jiné výpady' })
     state = appReducer(state, { type: 'DELETE_TEMPLATE', workoutTemplateId: legsId, id: first.id })
     state = appReducer(state, { type: 'RENAME_WORKOUT_TEMPLATE', id: legsId, name: 'Spodní část' })
     expect(state.workoutTemplates[0].id).toBe(originalId)
     expect(state.workoutTemplates[0].exercises).toHaveLength(12)
     expect(state.workouts[0]).toEqual(workout)
+  })
+
+  it('přejmenuje pouze konkrétní trénink, zachová zdrojovou šablonu i sérii', () => {
+    let state = withWorkout()
+    const workout = state.workouts[0]
+    state = updateSet(state, 'lukas', 'reps', '12')
+    const exercise = state.workouts[0].exercises[0]
+    state = appReducer(state, { type: 'RENAME_WORKOUT', workoutId: workout.id, name: '  Úterý   síla  ' })
+    expect(state.workouts[0].name).toBe('Úterý síla')
+    expect(state.workouts[0].sourceTemplateName).toBe('Výchozí trénink')
+    expect(state.workouts[0].exercises[0]).toBe(exercise)
+    expect(state.workoutTemplates[0].name).toBe('Výchozí trénink')
+    expect(appReducer(state, { type: 'RENAME_WORKOUT', workoutId: workout.id, name: '  ' })).toBe(state)
   })
 
   it('duplikuje seznam včetně pořadí a aktivace do samostatné šablony', () => {

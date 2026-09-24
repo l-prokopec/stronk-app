@@ -9,15 +9,17 @@ const DEFAULT_NAMES = ['Kliky', 'Dead bug', 'Boční plank', 'Plank', 'Bulhaři'
 type LegacyPersonData = { weight: string; reps: string }
 type LegacySet = { id: string; lukas: LegacyPersonData; terka: LegacyPersonData }
 type LegacyExercise = Omit<WorkoutExercise, 'setsByPerson'> & { sets: LegacySet[] }
-type V3Workout = Omit<Workout, 'sourceTemplateName'>
+type V4Workout = Omit<Workout, 'name'>
+type V3Workout = Omit<V4Workout, 'sourceTemplateName'>
 type LegacyWorkout = Omit<V3Workout, 'exercises'> & { exercises: LegacyExercise[] }
 type V2State = { version: 2; exerciseTemplates: ExerciseTemplate[]; workouts: V3Workout[]; activeWorkoutId: string | null }
 type V3State = { version: 3; workoutTemplates: WorkoutTemplate[]; workouts: V3Workout[]; activeWorkoutId: string | null }
+type V4State = { version: 4; workoutTemplates: WorkoutTemplate[]; workouts: V4Workout[]; activeWorkoutId: string | null }
 export type LegacyAppState = Omit<V2State, 'version' | 'workouts'> & { version: 1; workouts: LegacyWorkout[] }
 
 export const createInitialState = (): AppState => {
   const timestamp = new Date().toISOString()
-  return { version: 4, workouts: [], activeWorkoutId: null,
+  return { version: 5, workouts: [], activeWorkoutId: null,
     workoutTemplates: [{ id: createId(), name: 'Výchozí trénink', createdAt: timestamp, updatedAt: timestamp,
       exercises: DEFAULT_NAMES.map((name, order): ExerciseTemplate => ({ id: createId(), name, order, enabledByDefault: true, createdAt: timestamp, updatedAt: timestamp })) }],
   }
@@ -31,7 +33,8 @@ const isExercise = (value: unknown): value is WorkoutExercise => isRecord(value)
 const isWorkout = (value: unknown): value is Workout => isRecord(value) && typeof value.id === 'string' && typeof value.date === 'string' && typeof value.createdAt === 'string' && typeof value.updatedAt === 'string' && Array.isArray(value.exercises) && value.exercises.every(isExercise)
 const hasWorkouts = (value: Record<string, unknown>) => Array.isArray(value.workouts) && value.workouts.every(isWorkout) && (value.activeWorkoutId === null || typeof value.activeWorkoutId === 'string')
 const hasOldTemplates = (value: Record<string, unknown>) => Array.isArray(value.exerciseTemplates) && value.exerciseTemplates.every(isTemplate)
-export const isAppState = (value: unknown): value is AppState => isRecord(value) && value.version === 4 && hasWorkouts(value) && Array.isArray(value.workouts) && value.workouts.every((workout: Record<string, unknown>) => typeof workout.sourceTemplateName === 'string') && Array.isArray(value.workoutTemplates) && value.workoutTemplates.every(isWorkoutTemplate)
+export const isAppState = (value: unknown): value is AppState => isRecord(value) && value.version === 5 && hasWorkouts(value) && Array.isArray(value.workouts) && value.workouts.every((workout: Record<string, unknown>) => typeof workout.sourceTemplateName === 'string' && typeof workout.name === 'string') && Array.isArray(value.workoutTemplates) && value.workoutTemplates.every(isWorkoutTemplate)
+const isV4State = (value: unknown): value is V4State => isRecord(value) && value.version === 4 && hasWorkouts(value) && Array.isArray(value.workouts) && value.workouts.every((workout: Record<string, unknown>) => typeof workout.sourceTemplateName === 'string') && Array.isArray(value.workoutTemplates) && value.workoutTemplates.every(isWorkoutTemplate)
 const isV3State = (value: unknown): value is V3State => isRecord(value) && value.version === 3 && hasWorkouts(value) && Array.isArray(value.workoutTemplates) && value.workoutTemplates.every(isWorkoutTemplate)
 const isV2State = (value: unknown): value is V2State => isRecord(value) && value.version === 2 && hasWorkouts(value) && hasOldTemplates(value)
 
@@ -64,12 +67,17 @@ export const migrateV2State = (old: V2State): V3State => {
     workouts: old.workouts.map((workout) => ({ ...workout, sourceTemplateId: template.id })) }
 }
 
-export const migrateV3State = (old: V3State): AppState => ({
+export const migrateV3State = (old: V3State): V4State => ({
   ...old, version: 4,
   workouts: old.workouts.map((workout) => ({ ...workout,
     sourceTemplateName: old.workoutTemplates.find((item) => item.id === workout.sourceTemplateId)?.name
       ?? (workout.sourceTemplateId ? 'Smazaná šablona' : 'Prázdný trénink'),
   })),
+})
+
+export const migrateV4State = (old: V4State): AppState => ({
+  ...old, version: 5,
+  workouts: old.workouts.map((workout) => ({ ...workout, name: workout.sourceTemplateName })),
 })
 
 export const loadState = (storage: Storage = localStorage): AppState => {
@@ -78,10 +86,10 @@ export const loadState = (storage: Storage = localStorage): AppState => {
   try {
     const parsed: unknown = JSON.parse(raw)
     if (isAppState(parsed)) return parsed
-    if (isV3State(parsed) || isV2State(parsed) || isLegacyAppState(parsed)) {
+    if (isV4State(parsed) || isV3State(parsed) || isV2State(parsed) || isLegacyAppState(parsed)) {
       let backupSaved = false
       try { storage.setItem(`${MIGRATION_BACKUP_PREFIX}${Date.now()}`, raw); backupSaved = true } catch { /* Původní hodnota zůstává pod hlavním klíčem. */ }
-      const migrated = migrateV3State(isV3State(parsed) ? parsed : migrateV2State(isLegacyAppState(parsed) ? migrateV1State(parsed) : parsed))
+      const migrated = migrateV4State(isV4State(parsed) ? parsed : migrateV3State(isV3State(parsed) ? parsed : migrateV2State(isLegacyAppState(parsed) ? migrateV1State(parsed) : parsed)))
       if (backupSaved) try { storage.setItem(STORAGE_KEY, JSON.stringify(migrated)) } catch { /* AppProvider zkusí stav uložit znovu. */ }
       return migrated
     }

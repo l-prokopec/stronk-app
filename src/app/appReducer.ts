@@ -9,6 +9,7 @@ export type AppAction =
   | { type: 'CLOSE_WORKOUT' }
   | { type: 'DELETE_WORKOUT'; id: string }
   | { type: 'UPDATE_DATE'; workoutId: string; date: string }
+  | { type: 'RENAME_WORKOUT'; workoutId: string; name: string }
   | { type: 'ADD_EXERCISE'; workoutId: string; name: string; targetTemplateId: string | null }
   | { type: 'REMOVE_EXERCISE'; workoutId: string; exerciseId: string }
   | { type: 'REORDER_EXERCISES'; workoutId: string; activeId: string; overId: string }
@@ -53,6 +54,10 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
     case 'CLOSE_WORKOUT': return { ...state, activeWorkoutId: null }
     case 'DELETE_WORKOUT': return { ...state, workouts: state.workouts.filter((item) => item.id !== action.id), activeWorkoutId: state.activeWorkoutId === action.id ? null : state.activeWorkoutId }
     case 'UPDATE_DATE': return updateWorkout(state, action.workoutId, (workout) => ({ ...workout, date: action.date }))
+    case 'RENAME_WORKOUT': {
+      const name = cleanExerciseName(action.name)
+      return name && name.length <= 80 ? updateWorkout(state, action.workoutId, (workout) => ({ ...workout, name })) : state
+    }
     case 'ADD_EXERCISE': {
       const name = cleanExerciseName(action.name)
       let next = updateWorkout(state, action.workoutId, (workout) => ({ ...workout, exercises: [...workout.exercises, { id: createId(), exerciseTemplateId: null, name, order: workout.exercises.length, setsByPerson: createInitialSetsByPerson(), isCompleted: false }] }))
