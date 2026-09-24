@@ -10,36 +10,57 @@ import { appReducer } from './appReducer'
 
 const renderApp = (initialState: AppState = createInitialState()) => render(<AppProvider initialState={initialState}><App /></AppProvider>)
 const renderStoredApp = () => render(<AppProvider><App /></AppProvider>)
-const stateWithClosedWorkout = () => { let state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); return state }
+const chooseDefault = async (user: ReturnType<typeof userEvent.setup>) => { await user.click(screen.getByRole('button', { name: 'Nový trénink' })); await user.click(within(screen.getByRole('dialog', { name: 'Vybrat šablonu tréninku' })).getByRole('button', { name: 'Výchozí trénink' })) }
+const stateWithClosedWorkout = () => { let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); return state }
 const setHistoryState = (state: AppHistoryState) => window.history.replaceState(state, '', window.location.href)
 const dispatchPopState = (state: AppHistoryState) => act(() => { setHistoryState(state); window.dispatchEvent(new PopStateEvent('popstate', { state })) })
 
 describe('uživatelské chování', () => {
-  it('zobrazuje název Stronk App a oba způsoby vytvoření tréninku', () => { renderApp(); expect(screen.getByRole('heading', { name: 'Stronk App' })).toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Nový trénink' })).toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Prázdný trénink' })).toBeInTheDocument() })
+  it('zobrazuje název Stronk App a akci vytvoření tréninku', () => { renderApp(); expect(screen.getByRole('heading', { name: 'Stronk App' })).toBeInTheDocument(); expect(screen.getByRole('button', { name: 'Nový trénink' })).toBeInTheDocument() })
   it('používá pouze tmavý motiv bez přepínače', () => { renderApp(); expect(screen.queryByRole('button', { name: /režim/i })).not.toBeInTheDocument() })
-  it('vloží datum, karty a hlavní akce běžného tréninku do společného wrapperu', async () => { const user = userEvent.setup(); renderApp(); expect(screen.getByText('Zatím žádný trénink')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: /nový trénink/i })); const dateInput = screen.getByLabelText('Datum tréninku'); const dateSection = dateInput.closest<HTMLElement>('.workout-date-section'); const content = dateInput.closest<HTMLElement>('.workout-screen__content'); expect(dateInput).toHaveClass('workout-date-input'); expect(dateInput.parentElement).toBe(dateSection); expect(content).toContainElement(screen.getByRole('heading', { name: 'Leg press' }).closest<HTMLElement>('.exercise-card')); expect(content).toContainElement(screen.getByRole('button', { name: '+ Přidat cvik' })) })
-  it('vytvoří prázdný trénink, zachová společný wrapper a uloží ho do localStorage', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Prázdný trénink' })); const emptyState = screen.getByText('Trénink nemá žádné cviky').closest<HTMLElement>('.empty-state'); const addButton = screen.getByRole('button', { name: '+ Přidat cvik' }); const content = screen.getByLabelText('Datum tréninku').closest<HTMLElement>('.workout-screen__content'); expect(content).toContainElement(emptyState); expect(content).toContainElement(addButton); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts).toHaveLength(1); expect(stored.workouts[0].exercises).toEqual([]); expect(stored.activeWorkoutId).toBe(stored.workouts[0].id) }) })
-  it('upraví datum tréninku a změnu uloží do localStorage', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: /nový trénink/i })); const dateInput = screen.getByLabelText('Datum tréninku'); await user.clear(dateInput); await user.type(dateInput, '2026-08-21'); expect(dateInput).toHaveValue('2026-08-21'); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts[0].date).toBe('2026-08-21') }) })
-  it('umožní zapsat jiné hodnoty pro Lukáše a Terku a přidat nezávislou sérii', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: /nový trénink/i })); const card = screen.getByRole('heading', { name: 'Leg press' }).closest('article')!; await user.click(within(card).getByRole('button', { name: 'Leg press' })); await user.type(within(card).getByLabelText('Váha v kilogramech, 1. série, Lukáš, Leg press'), '100,5'); await user.type(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press'), '12'); expect(within(card).getByLabelText('Váha v kilogramech, 1. série, Lukáš, Leg press')).toHaveValue('100,5'); expect(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')).toHaveValue('12'); await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' })); expect(within(card).getByLabelText('Váha v kilogramech, 2. série, Lukáš, Leg press')).toHaveValue('100,5'); expect(within(card).queryByLabelText('Váha v kilogramech, 2. série, Terka, Leg press')).not.toBeInTheDocument(); await user.click(within(card).getByRole('button', { name: 'Odstranit 2. sérii Lukáše u cviku Leg press' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' })); expect(within(card).queryByLabelText('Váha v kilogramech, 2. série, Lukáš, Leg press')).not.toBeInTheDocument() })
-  it('validuje prázdný název vlastního cviku a pak cvik přidá', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: /nový trénink/i })); await user.click(screen.getByRole('button', { name: '+ Přidat cvik' })); const dialog = screen.getByRole('dialog'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(within(dialog).getByText('Zadejte název cviku.')).toBeInTheDocument(); await user.type(within(dialog).getByLabelText('Název cviku'), 'Hip thrust'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(screen.getByRole('heading', { name: 'Hip thrust' })).toBeInTheDocument() })
-  it('spravuje aktivaci výchozího cviku', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Výchozí cviky' })); const toggle = screen.getByRole('checkbox', { name: 'Přidávat cvik Leg press do nových tréninků' }); expect(toggle).toBeChecked(); await user.click(toggle); expect(toggle).not.toBeChecked() })
-  it('zobrazuje dotykové úchytky pro pořadí cviků i výchozích cviků', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' })); expect(screen.getByRole('button', { name: 'Přesunout cvik Leg press' })).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: '← Zpět' })); act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: HOME_HISTORY_STATE }))); await user.click(await screen.findByRole('button', { name: 'Výchozí cviky' })); expect(screen.getByRole('button', { name: 'Přesunout výchozí cvik Leg press' })).toBeInTheDocument() })
-  it('zruší odstranění tréninku z dashboardu bez otevření detailu', async () => { const user = userEvent.setup(); let state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); expect(screen.queryByLabelText('Datum tréninku')).not.toBeInTheDocument(); const dialog = screen.getByRole('alertdialog'); expect(within(dialog).getByText(/14\. 7\. 2026/)).toBeInTheDocument(); await user.click(within(dialog).getByRole('button', { name: 'Zrušit' })); expect(screen.getByText('14. 7. 2026')).toBeInTheDocument() })
-  it('potvrdí odstranění posledního tréninku a změnu uloží', async () => { const user = userEvent.setup(); let state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' })); expect(screen.getByText('Zatím žádný trénink')).toBeInTheDocument(); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts).toEqual([]) }) })
+  it('vloží datum, karty a hlavní akce běžného tréninku do společného wrapperu', async () => { const user = userEvent.setup(); renderApp(); expect(screen.getByText('Zatím žádný trénink')).toBeInTheDocument(); await chooseDefault(user); const dateInput = screen.getByLabelText('Datum tréninku'); const dateSection = dateInput.closest<HTMLElement>('.workout-date-section'); const content = dateInput.closest<HTMLElement>('.workout-screen__content'); expect(dateInput).toHaveClass('workout-date-input'); expect(dateInput.parentElement).toBe(dateSection); expect(content).toContainElement(screen.getByRole('heading', { name: 'Leg press' }).closest<HTMLElement>('.exercise-card')); expect(content).toContainElement(screen.getByRole('button', { name: '+ Přidat cvik' })) })
+  it('vytvoří prázdný trénink, zachová společný wrapper a uloží ho do localStorage', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' })); await user.click(within(screen.getByRole('dialog', { name: 'Vybrat šablonu tréninku' })).getByRole('button', { name: 'Prázdný trénink' })); const emptyState = screen.getByText('Trénink nemá žádné cviky').closest<HTMLElement>('.empty-state'); const addButton = screen.getByRole('button', { name: '+ Přidat cvik' }); const content = screen.getByLabelText('Datum tréninku').closest<HTMLElement>('.workout-screen__content'); expect(content).toContainElement(emptyState); expect(content).toContainElement(addButton); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts).toHaveLength(1); expect(stored.workouts[0].exercises).toEqual([]); expect(stored.activeWorkoutId).toBe(stored.workouts[0].id) }) })
+  it('upraví datum tréninku a změnu uloží do localStorage', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); const dateInput = screen.getByLabelText('Datum tréninku'); await user.clear(dateInput); await user.type(dateInput, '2026-08-21'); expect(dateInput).toHaveValue('2026-08-21'); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts[0].date).toBe('2026-08-21') }) })
+  it('umožní zapsat jiné hodnoty pro Lukáše a Terku a přidat nezávislou sérii', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); const card = screen.getByRole('heading', { name: 'Leg press' }).closest('article')!; await user.click(within(card).getByRole('button', { name: 'Leg press' })); await user.type(within(card).getByLabelText('Váha v kilogramech, 1. série, Lukáš, Leg press'), '100,5'); await user.type(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press'), '12'); expect(within(card).getByLabelText('Váha v kilogramech, 1. série, Lukáš, Leg press')).toHaveValue('100,5'); expect(within(card).getByLabelText('Opakování, 1. série, Terka, Leg press')).toHaveValue('12'); await user.click(within(card).getByRole('button', { name: 'Přidat sérii pro Lukáše' })); expect(within(card).getByLabelText('Váha v kilogramech, 2. série, Lukáš, Leg press')).toHaveValue('100,5'); expect(within(card).queryByLabelText('Váha v kilogramech, 2. série, Terka, Leg press')).not.toBeInTheDocument(); await user.click(within(card).getByRole('button', { name: 'Odstranit 2. sérii Lukáše u cviku Leg press' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' })); expect(within(card).queryByLabelText('Váha v kilogramech, 2. série, Lukáš, Leg press')).not.toBeInTheDocument() })
+  it('validuje prázdný název vlastního cviku a pak cvik přidá', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); await user.click(screen.getByRole('button', { name: '+ Přidat cvik' })); const dialog = screen.getByRole('dialog'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(within(dialog).getByText('Zadejte název cviku.')).toBeInTheDocument(); await user.type(within(dialog).getByLabelText('Název cviku'), 'Hip thrust'); await user.click(within(dialog).getByRole('button', { name: 'Přidat' })); expect(screen.getByRole('heading', { name: 'Hip thrust' })).toBeInTheDocument() })
+  it('spravuje aktivaci výchozího cviku', async () => { const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Šablony tréninků' })); await user.click(screen.getByRole('button', { name: /Výchozí trénink/ })); const toggle = screen.getByRole('checkbox', { name: 'Přidávat cvik Leg press do nových tréninků' }); expect(toggle).toBeChecked(); await user.click(toggle); expect(toggle).not.toBeChecked() })
+  it('zobrazuje dotykové úchytky pro pořadí cviků i výchozích cviků', async () => { const user = userEvent.setup(); renderApp(); await chooseDefault(user); expect(screen.getByRole('button', { name: 'Přesunout cvik Leg press' })).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: '← Zpět' })); act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: HOME_HISTORY_STATE }))); await user.click(await screen.findByRole('button', { name: 'Šablony tréninků' })); await user.click(screen.getByRole('button', { name: /Výchozí trénink/ })); expect(screen.getByRole('button', { name: 'Přesunout výchozí cvik Leg press' })).toBeInTheDocument() })
+  it('zruší odstranění tréninku z dashboardu bez otevření detailu', async () => { const user = userEvent.setup(); let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); expect(screen.queryByLabelText('Datum tréninku')).not.toBeInTheDocument(); const dialog = screen.getByRole('alertdialog'); expect(within(dialog).getByText(/14\. 7\. 2026/)).toBeInTheDocument(); await user.click(within(dialog).getByRole('button', { name: 'Zrušit' })); expect(screen.getByText('14. 7. 2026')).toBeInTheDocument() })
+  it('potvrdí odstranění posledního tréninku a změnu uloží', async () => { const user = userEvent.setup(); let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }); state = appReducer(state, { type: 'CLOSE_WORKOUT' }); renderApp(state); await user.click(screen.getByRole('button', { name: 'Odstranit trénink z 14. 7. 2026' })); await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Odstranit' })); expect(screen.getByText('Zatím žádný trénink')).toBeInTheDocument(); await waitFor(() => { const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as AppState; expect(stored.workouts).toEqual([]) }) })
+
+  it('vytvoří druhou šablonu, vybere ji a uloží kopii cviků do tréninku', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await user.click(screen.getByRole('button', { name: 'Šablony tréninků' }))
+    await user.type(screen.getByLabelText('Nová šablona'), 'Běžecká síla')
+    await user.click(screen.getByRole('button', { name: 'Vytvořit' }))
+    await user.click(screen.getByRole('button', { name: /Běžecká síla/ }))
+    await user.type(screen.getByLabelText('Nový výchozí cvik'), 'Výpady')
+    await user.click(screen.getByRole('button', { name: 'Přidat' }))
+    expect(screen.getByRole('button', { name: 'Přesunout výchozí cvik Výpady' })).toBeInTheDocument()
+    dispatchPopState(HOME_HISTORY_STATE)
+    await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const picker = screen.getByRole('dialog', { name: 'Vybrat šablonu tréninku' })
+    expect(within(picker).getByRole('button', { name: 'Výchozí trénink' })).toBeInTheDocument()
+    await user.click(within(picker).getByRole('button', { name: 'Běžecká síla' }))
+    expect(screen.getByRole('heading', { name: 'Výpady' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Kliky' })).not.toBeInTheDocument()
+    await waitFor(() => expect((JSON.parse(localStorage.getItem(STORAGE_KEY)!) as AppState).workouts[0].exercises.map((exercise) => exercise.name)).toEqual(['Výpady']))
+  })
 })
 
 describe('komponenty sérií podle osoby', () => {
   const openLegPress = async () => {
     const user = userEvent.setup()
     renderApp()
-    await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    await chooseDefault(user)
     const card = screen.getByRole('heading', { name: 'Leg press' }).closest<HTMLElement>('article')!
     await user.click(within(card).getByRole('button', { name: 'Leg press' }))
     return { user, card }
   }
 
   it('při otevření rozbalí první nerozdělaný cvik a název přepíná jeho obsah', async () => {
-    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const user = userEvent.setup(); renderApp(); await chooseDefault(user)
     const card = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
     const toggle = within(card).getByRole('button', { name: 'Kliky' })
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
@@ -50,7 +71,7 @@ describe('komponenty sérií podle osoby', () => {
   })
 
   it('zobrazí stav cviku, po dokončení ho sbalí a otevře další vhodný cvik', async () => {
-    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const user = userEvent.setup(); renderApp(); await chooseDefault(user)
     const firstCard = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
     const secondCard = screen.getByRole('heading', { name: 'Dead bug' }).closest<HTMLElement>('article')!
     expect(firstCard.querySelector('.exercise-status--in-progress')).not.toBeInTheDocument()
@@ -63,7 +84,7 @@ describe('komponenty sérií podle osoby', () => {
   })
 
   it('umožní znovu otevřít dokončený cvik pro kontrolu hodnot', async () => {
-    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const user = userEvent.setup(); renderApp(); await chooseDefault(user)
     const card = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
     await user.click(within(card).getByRole('button', { name: 'Dokončit' }))
     const toggle = within(card).getByRole('button', { name: 'Kliky' })
@@ -75,7 +96,7 @@ describe('komponenty sérií podle osoby', () => {
   })
 
   it('zrušení dokončení zachová data a ponechá otevřený pouze daný cvik', async () => {
-    const user = userEvent.setup(); renderApp(); await user.click(screen.getByRole('button', { name: 'Nový trénink' }))
+    const user = userEvent.setup(); renderApp(); await chooseDefault(user)
     const firstCard = screen.getByRole('heading', { name: 'Kliky' }).closest<HTMLElement>('article')!
     const secondCard = screen.getByRole('heading', { name: 'Dead bug' }).closest<HTMLElement>('article')!
     await user.type(within(firstCard).getByLabelText('Opakování, 1. série, Lukáš, Kliky'), '12')
@@ -103,7 +124,7 @@ describe('komponenty sérií podle osoby', () => {
   })
 
   it('při otevření upřednostní první rozpracovaný cvik', () => {
-    let state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) })
+    let state = createInitialState(); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) })
     const workout = state.workouts[0], exercise = workout.exercises.find((item) => item.name === 'Rumuni')!
     state = appReducer(state, { type: 'UPDATE_PERSON_SET', workoutId: workout.id, exerciseId: exercise.id, person: 'lukas', setId: exercise.setsByPerson.lukas[0].id, field: 'reps', value: '8' })
     setHistoryState(workoutHistoryState(workout.id))
@@ -257,10 +278,10 @@ describe('browser history navigace', () => {
     expect(screen.getByLabelText('Datum tréninku')).toBeInTheDocument()
   })
 
-  it.each([['Nový trénink', 'withTemplates'], ['Prázdný trénink', 'empty']] as const)('%s vytvoří právě jednu workout history entry', async (buttonName, mode) => {
+  it.each([['Výchozí trénink', 'withTemplates'], ['Prázdný trénink', 'empty']] as const)('%s vytvoří právě jednu workout history entry', async (buttonName, mode) => {
     const user = userEvent.setup(); setHistoryState(HOME_HISTORY_STATE)
     const push = vi.spyOn(window.history, 'pushState'); renderApp()
-    await user.click(screen.getByRole('button', { name: buttonName }))
+    await user.click(screen.getByRole('button', { name: 'Nový trénink' })); await user.click(within(screen.getByRole('dialog', { name: 'Vybrat šablonu tréninku' })).getByRole('button', { name: buttonName }))
     expect(push).toHaveBeenCalledTimes(1)
     const pushed = push.mock.calls[0][0] as AppHistoryState
     expect(pushed).toMatchObject({ app: 'stronk-app', screen: 'workout' })
@@ -301,7 +322,7 @@ describe('browser history navigace', () => {
   it('správa výchozích cviků vytvoří templates entry a popstate home ji zavře', async () => {
     const user = userEvent.setup(); setHistoryState(HOME_HISTORY_STATE)
     const push = vi.spyOn(window.history, 'pushState'); renderApp()
-    await user.click(screen.getByRole('button', { name: 'Výchozí cviky' }))
+    await user.click(screen.getByRole('button', { name: 'Šablony tréninků' }))
     expect(push).toHaveBeenCalledTimes(1); expect(push.mock.calls[0][0]).toEqual(TEMPLATES_HISTORY_STATE)
     dispatchPopState(HOME_HISTORY_STATE)
     expect(await screen.findByRole('heading', { name: 'Stronk App' })).toBeInTheDocument()

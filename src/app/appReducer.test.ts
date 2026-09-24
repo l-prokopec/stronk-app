@@ -3,7 +3,7 @@ import { createInitialState } from '../storage/appStorage'
 import type { AppState, Person } from '../types/workout'
 import { appReducer } from './appReducer'
 
-const withWorkout = () => appReducer(createInitialState(), { type: 'CREATE_WORKOUT', now: new Date(2026, 6, 14) })
+const withWorkout = () => { const state = createInitialState(); return appReducer(state, { type: 'CREATE_WORKOUT', templateId: state.workoutTemplates[0].id, now: new Date(2026, 6, 14) }) }
 const getExercise = (state: AppState, exerciseIndex = 0) => state.workouts[0].exercises[exerciseIndex]
 const updateSet = (state: AppState, person: Person, field: 'reps' | 'weight', value: string, exerciseIndex = 0, setIndex = 0) => {
   const workout = state.workouts[0]
@@ -136,17 +136,59 @@ describe('appReducer — série podle osoby', () => {
 
 describe('appReducer — ostatní funkce', () => {
   it('vytvoří a otevře nový trénink', () => { const state = withWorkout(); expect(state.workouts).toHaveLength(1); expect(state.activeWorkoutId).toBe(state.workouts[0].id) })
-  it('vytvoří a otevře prázdný trénink', () => { const state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', mode: 'empty', now: new Date(2026, 6, 14) }); expect(state.workouts[0].exercises).toEqual([]); expect(state.workouts[0].date).toBe('2026-07-14'); expect(state.activeWorkoutId).toBe(state.workouts[0].id) })
+  it('vytvoří a otevře prázdný trénink', () => { const state = appReducer(createInitialState(), { type: 'CREATE_WORKOUT', templateId: null, now: new Date(2026, 6, 14) }); expect(state.workouts[0].exercises).toEqual([]); expect(state.workouts[0].date).toBe('2026-07-14'); expect(state.activeWorkoutId).toBe(state.workouts[0].id) })
   it('otevře uložený trénink', () => { let state = withWorkout(); const id = state.workouts[0].id; state = appReducer(state, { type: 'CLOSE_WORKOUT' }); expect(appReducer(state, { type: 'OPEN_WORKOUT', id }).activeWorkoutId).toBe(id) })
   it('odstraní celý trénink a vyčistí aktivní ID', () => { const state = withWorkout(); const next = appReducer(state, { type: 'DELETE_WORKOUT', id: state.workouts[0].id }); expect(next.workouts).toHaveLength(0); expect(next.activeWorkoutId).toBeNull() })
-  it('přidá vlastní cvik s jednou sérií pro každou osobu jen do tréninku', () => { const state = withWorkout(), count = state.exerciseTemplates.length, workout = state.workouts[0]; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: '  Hip thrust ', addToTemplates: false }); const exercise = next.workouts[0].exercises.at(-1)!; expect(exercise.name).toBe('Hip thrust'); expect(exercise.setsByPerson.lukas).toHaveLength(1); expect(exercise.setsByPerson.terka).toHaveLength(1); expect(next.exerciseTemplates).toHaveLength(count) })
+  it('přidá vlastní cvik s jednou sérií pro každou osobu jen do tréninku', () => { const state = withWorkout(), count = state.workoutTemplates[0].exercises.length, workout = state.workouts[0]; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: '  Hip thrust ', targetTemplateId: null }); const exercise = next.workouts[0].exercises.at(-1)!; expect(exercise.name).toBe('Hip thrust'); expect(exercise.setsByPerson.lukas).toHaveLength(1); expect(exercise.setsByPerson.terka).toHaveLength(1); expect(next.workoutTemplates[0].exercises).toHaveLength(count) })
   it('označí cvik jako hotový', () => { const state = withWorkout(), workout = state.workouts[0], exercise = getExercise(state); const next = appReducer(state, { type: 'COMPLETE_EXERCISE', workoutId: workout.id, exerciseId: exercise.id }); expect(getExercise(next).isCompleted).toBe(true) })
   it('znovu otevře hotový cvik bez změny jeho sérií', () => { let state = updateSet(withWorkout(), 'lukas', 'reps', '12'); const workout = state.workouts[0], exercise = getExercise(state); state = appReducer(state, { type: 'COMPLETE_EXERCISE', workoutId: workout.id, exerciseId: exercise.id }); const sets = getExercise(state).setsByPerson; const next = appReducer(state, { type: 'REOPEN_EXERCISE', workoutId: workout.id, exerciseId: exercise.id }); expect(getExercise(next)).toMatchObject({ isCompleted: false, setsByPerson: sets }); expect(getExercise(next).setsByPerson).toBe(sets) })
-  it('přidá vlastní cvik také mezi šablony', () => { const state = withWorkout(), workout = state.workouts[0]; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: 'Hip thrust', addToTemplates: true }); expect(next.exerciseTemplates.some((item) => item.name === 'Hip thrust')).toBe(true) })
-  it('nevytvoří duplicitní šablonu kvůli mezerám nebo velikosti písmen', () => { const state = withWorkout(), workout = state.workouts[0], count = state.exerciseTemplates.length; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: '  LEG   PRESS ', addToTemplates: true }); expect(next.exerciseTemplates).toHaveLength(count) })
-  it('deaktivuje šablonu a další trénink ji nepřevezme', () => { let state = createInitialState(); const template = state.exerciseTemplates[0]; state = appReducer(state, { type: 'TOGGLE_TEMPLATE', id: template.id }); state = appReducer(state, { type: 'CREATE_WORKOUT' }); expect(state.workouts[0].exercises.some((item) => item.name === template.name)).toBe(false) })
-  it('odstranění šablony nemaže cvik ze staršího tréninku', () => { let state = withWorkout(); const template = state.exerciseTemplates[0]; state = appReducer(state, { type: 'DELETE_TEMPLATE', id: template.id }); expect(state.workouts[0].exercises.some((item) => item.name === template.name)).toBe(true) })
-  it('přejmenování šablony nepřejmenuje starší cvik', () => { let state = withWorkout(); const template = state.exerciseTemplates[0]; state = appReducer(state, { type: 'RENAME_TEMPLATE', id: template.id, name: 'Nový název' }); expect(state.workouts[0].exercises[0].name).toBe('Kliky'); expect(state.exerciseTemplates[0].name).toBe('Nový název') })
-  it('mění pořadí šablon přetažením', () => { const state = createInitialState(), first = state.exerciseTemplates[0], third = state.exerciseTemplates[2]; const next = appReducer(state, { type: 'REORDER_TEMPLATES', activeId: first.id, overId: third.id }); expect(next.exerciseTemplates.map((item) => item.id).slice(0, 3)).toEqual([state.exerciseTemplates[1].id, third.id, first.id]); expect(next.exerciseTemplates.map((item) => item.order).slice(0, 3)).toEqual([0, 1, 2]) })
+  it('přidá vlastní cvik také do vybrané šablony', () => { const state = withWorkout(), workout = state.workouts[0], templateId = state.workoutTemplates[0].id; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: 'Hip thrust', targetTemplateId: templateId }); expect(next.workoutTemplates[0].exercises.some((item) => item.name === 'Hip thrust')).toBe(true) })
+  it('nevytvoří duplicitní cvik v šabloně kvůli mezerám nebo velikosti písmen', () => { const state = withWorkout(), workout = state.workouts[0], count = state.workoutTemplates[0].exercises.length; const next = appReducer(state, { type: 'ADD_EXERCISE', workoutId: workout.id, name: '  LEG   PRESS ', targetTemplateId: state.workoutTemplates[0].id }); expect(next.workoutTemplates[0].exercises).toHaveLength(count) })
+  it('deaktivuje cvik a další trénink jej nepřevezme', () => { let state = createInitialState(); const source = state.workoutTemplates[0], template = source.exercises[0]; state = appReducer(state, { type: 'TOGGLE_TEMPLATE', workoutTemplateId: source.id, id: template.id }); state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: source.id }); expect(state.workouts[0].exercises.some((item) => item.name === template.name)).toBe(false) })
+  it('odstranění cviku ze šablony nemaže cvik ze staršího tréninku', () => { let state = withWorkout(); const source = state.workoutTemplates[0], template = source.exercises[0]; state = appReducer(state, { type: 'DELETE_TEMPLATE', workoutTemplateId: source.id, id: template.id }); expect(state.workouts[0].exercises.some((item) => item.name === template.name)).toBe(true) })
+  it('přejmenování cviku šablony nepřejmenuje starší cvik', () => { let state = withWorkout(); const source = state.workoutTemplates[0], template = source.exercises[0]; state = appReducer(state, { type: 'RENAME_TEMPLATE', workoutTemplateId: source.id, id: template.id, name: 'Nový název' }); expect(state.workouts[0].exercises[0].name).toBe('Kliky'); expect(state.workoutTemplates[0].exercises[0].name).toBe('Nový název') })
+  it('mění pořadí cviků šablony přetažením', () => { const state = createInitialState(), source = state.workoutTemplates[0], first = source.exercises[0], third = source.exercises[2]; const next = appReducer(state, { type: 'REORDER_TEMPLATES', workoutTemplateId: source.id, activeId: first.id, overId: third.id }); expect(next.workoutTemplates[0].exercises.map((item) => item.id).slice(0, 3)).toEqual([source.exercises[1].id, third.id, first.id]); expect(next.workoutTemplates[0].exercises.map((item) => item.order).slice(0, 3)).toEqual([0, 1, 2]) })
   it('mění pořadí cviků pouze v určeném tréninku', () => { const state = withWorkout(), workout = state.workouts[0], first = workout.exercises[0], third = workout.exercises[2]; const next = appReducer(state, { type: 'REORDER_EXERCISES', workoutId: workout.id, activeId: first.id, overId: third.id }); expect(next.workouts[0].exercises.map((item) => item.id).slice(0, 3)).toEqual([workout.exercises[1].id, third.id, first.id]); expect(next.workouts[0].exercises.map((item) => item.order).slice(0, 3)).toEqual([0, 1, 2]) })
+})
+
+describe('šablony tréninků', () => {
+  it('každá šablona vlastní nezávislý seznam cviků a nově vytvořený trénink je kopie', () => {
+    let state = createInitialState()
+    const originalId = state.workoutTemplates[0].id
+    state = appReducer(state, { type: 'ADD_WORKOUT_TEMPLATE', name: 'Nohy' })
+    const legsId = state.workoutTemplates[1].id
+    state = appReducer(state, { type: 'ADD_TEMPLATE', workoutTemplateId: legsId, name: 'Dřepy' })
+    state = appReducer(state, { type: 'ADD_TEMPLATE', workoutTemplateId: legsId, name: 'Výpady' })
+    const first = state.workoutTemplates[1].exercises[0]
+    const second = state.workoutTemplates[1].exercises[1]
+    state = appReducer(state, { type: 'REORDER_TEMPLATES', workoutTemplateId: legsId, activeId: first.id, overId: second.id })
+    state = appReducer(state, { type: 'CREATE_WORKOUT', templateId: legsId })
+    const workout = state.workouts[0]
+    expect(workout.exercises.map((item) => item.name)).toEqual(['Výpady', 'Dřepy'])
+    expect(workout.sourceTemplateId).toBe(legsId)
+    state = appReducer(state, { type: 'RENAME_TEMPLATE', workoutTemplateId: legsId, id: second.id, name: 'Jiné výpady' })
+    state = appReducer(state, { type: 'DELETE_TEMPLATE', workoutTemplateId: legsId, id: first.id })
+    state = appReducer(state, { type: 'RENAME_WORKOUT_TEMPLATE', id: legsId, name: 'Spodní část' })
+    expect(state.workoutTemplates[0].id).toBe(originalId)
+    expect(state.workoutTemplates[0].exercises).toHaveLength(12)
+    expect(state.workouts[0]).toEqual(workout)
+  })
+
+  it('smazání šablony zachová historický trénink včetně sérií a dokončení', () => {
+    let state = withWorkout()
+    const workout = state.workouts[0]
+    state = updateSet(state, 'lukas', 'reps', '12')
+    state = appReducer(state, { type: 'COMPLETE_EXERCISE', workoutId: workout.id, exerciseId: workout.exercises[0].id })
+    const snapshot = state.workouts[0]
+    state = appReducer(state, { type: 'DELETE_WORKOUT_TEMPLATE', id: state.workoutTemplates[0].id })
+    expect(state.workoutTemplates).toEqual([])
+    expect(state.workouts[0]).toEqual(snapshot)
+    expect(state.workouts[0].exercises[0]).toMatchObject({ isCompleted: true, setsByPerson: { lukas: [{ reps: '12' }] } })
+  })
+
+  it('nedovolí založit trénink z neexistující šablony ani duplicitní název', () => {
+    const state = createInitialState()
+    expect(appReducer(state, { type: 'CREATE_WORKOUT', templateId: 'missing' })).toBe(state)
+    expect(appReducer(state, { type: 'ADD_WORKOUT_TEMPLATE', name: '  výchozí   TRÉNINK ' })).toBe(state)
+  })
 })

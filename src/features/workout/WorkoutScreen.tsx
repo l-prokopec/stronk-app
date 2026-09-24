@@ -33,7 +33,7 @@ export function WorkoutScreen({ onBack, onDeleteWorkout }: { onBack: () => void;
       </section>
       <div className="bottom-actions"><button className="primary-action full workout-screen__primary-action" onClick={() => setShowAdd(true)}>+ Přidat cvik</button><button className="text-danger full" onClick={() => setConfirmDelete(true)}>Odstranit celý trénink</button></div>
     </div>
-    {showAdd && <AddExerciseDialog onCancel={() => setShowAdd(false)} onAdd={(name, addToTemplates) => { dispatch({ type: 'ADD_EXERCISE', workoutId: workout.id, name, addToTemplates }); setShowAdd(false) }} />}
+    {showAdd && <AddExerciseDialog templates={state.workoutTemplates} sourceTemplateId={workout.sourceTemplateId} onCancel={() => setShowAdd(false)} onAdd={(name, targetTemplateId) => { dispatch({ type: 'ADD_EXERCISE', workoutId: workout.id, name, targetTemplateId }); setShowAdd(false) }} />}
     {confirmDelete && <ConfirmDialog title="Odstranit celý trénink?" message="Trénink včetně všech zadaných sérií bude trvale odstraněn z tohoto prohlížeče." onCancel={() => setConfirmDelete(false)} onConfirm={() => onDeleteWorkout(workout.id)} />}
   </main>
 }

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../app/AppContext'
-import type { WorkoutCreationMode } from '../types/workout'
 import { createId } from '../utils/id'
 import { currentAppHistoryState, ensureHomeHistoryEntry, isAppHistoryState, pushTemplatesHistory, pushWorkoutHistory, replaceHomeHistory } from './appHistory'
 
@@ -64,11 +63,12 @@ export function useAppHistory() {
     pushWorkoutHistory(workoutId)
   }, [dispatch])
 
-  const createWorkout = useCallback((mode: WorkoutCreationMode) => {
+  const createWorkout = useCallback((templateId: string | null) => {
+    if (templateId !== null && !stateRef.current.workoutTemplates.some((item) => item.id === templateId)) return
     ensureHomeHistoryEntry()
     const workoutId = createId()
     setScreen('home')
-    dispatch({ type: 'CREATE_WORKOUT', mode, id: workoutId })
+    dispatch({ type: 'CREATE_WORKOUT', templateId, id: workoutId })
     pushWorkoutHistory(workoutId)
   }, [dispatch])
 
